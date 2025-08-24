@@ -4,6 +4,15 @@
 #include <vector>
 #include <memory>
 
+// Forward declarations
+namespace ssmtp_mailer {
+    enum class QueuePriority;
+    struct QueuedEmail;
+}
+
+// Include queue types for complete definitions
+#include "core/queue/email_queue.hpp"
+
 namespace ssmtp_mailer {
 
 /**
@@ -283,6 +292,51 @@ public:
      * @return true if connection successful, false otherwise
      */
     bool testConnection();
+
+    /**
+     * @brief Queue management methods
+     */
+    
+    /**
+     * @brief Add email to queue for processing
+     * @param email Email to queue
+     * @param priority Priority level for processing
+     */
+    void enqueue(const Email& email, QueuePriority priority = QueuePriority::NORMAL);
+    
+    /**
+     * @brief Start the email processing queue
+     */
+    void startQueue();
+    
+    /**
+     * @brief Stop the email processing queue
+     */
+    void stopQueue();
+    
+    /**
+     * @brief Check if queue is running
+     * @return true if queue is active, false otherwise
+     */
+    bool isQueueRunning() const;
+    
+    /**
+     * @brief Get current queue size
+     * @return Number of emails in queue
+     */
+    size_t getQueueSize() const;
+    
+    /**
+     * @brief Get pending emails from queue
+     * @return Vector of pending emails
+     */
+    std::vector<QueuedEmail> getPendingEmails() const;
+    
+    /**
+     * @brief Get failed emails from queue
+     * @return Vector of failed emails
+     */
+    std::vector<QueuedEmail> getFailedEmails() const;
 
 private:
     class Impl;

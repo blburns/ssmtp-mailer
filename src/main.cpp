@@ -16,9 +16,21 @@ void printUsage() {
     std::cout << "  send                 Send an email" << std::endl;
     std::cout << "  test                 Test SMTP connection" << std::endl;
     std::cout << "  config               Show configuration status" << std::endl;
+    std::cout << "  queue                Manage email queue" << std::endl;
+    
+    std::cout << "\nQueue Subcommands:" << std::endl;
+    std::cout << "  start                Start the email processing queue" << std::endl;
+    std::cout << "  stop                 Stop the email processing queue" << std::endl;
+    std::cout << "  status               Show queue status" << std::endl;
+    std::cout << "  add                  Add email to queue" << std::endl;
+    std::cout << "  list                 List pending emails" << std::endl;
+    std::cout << "  failed               List failed emails" << std::endl;
     
     std::cout << "\nExamples:" << std::endl;
     std::cout << "  ssmtp-mailer send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
+    std::cout << "  ssmtp-mailer queue add --from user@example.com --to recipient@domain.com --subject 'Queued' --body 'Hello'" << std::endl;
+    std::cout << "  ssmtp-mailer queue start" << std::endl;
+    std::cout << "  ssmtp-mailer queue status" << std::endl;
     std::cout << "  ssmtp-mailer test" << std::endl;
     std::cout << "  ssmtp-mailer --config /path/to/config.conf send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
 }
@@ -173,6 +185,82 @@ int main(int argc, char* argv[]) {
             }
             
             return 0;
+            
+        } else if (command == "queue") {
+            logger.info("Queue management command");
+            
+            if (args.size() < 2) {
+                std::cerr << "Error: Queue command requires subcommand" << std::endl;
+                std::cerr << "Usage: queue [start|stop|status|add|list|failed]" << std::endl;
+                return 1;
+            }
+            
+            std::string subcommand = args[1];
+            
+            if (subcommand == "start") {
+                mailer.startQueue();
+                std::cout << "Email queue started" << std::endl;
+                logger.info("Email queue started");
+                return 0;
+                
+            } else if (subcommand == "stop") {
+                mailer.stopQueue();
+                std::cout << "Email queue stopped" << std::endl;
+                logger.info("Email queue stopped");
+                return 0;
+                
+            } else if (subcommand == "status") {
+                std::cout << "Queue Status:" << std::endl;
+                std::cout << "  Running: " << (mailer.isQueueRunning() ? "Yes" : "No") << std::endl;
+                std::cout << "  Size: " << mailer.getQueueSize() << std::endl;
+                return 0;
+                
+            } else if (subcommand == "add") {
+                if (args.size() < 6) {
+                    std::cerr << "Error: Queue add requires --from, --to, --subject, --body" << std::endl;
+                    std::cerr << "Usage: queue add --from EMAIL --to EMAIL --subject SUBJECT --body BODY" << std::endl;
+                    return 1;
+                }
+                
+                std::vector<std::string> queue_args(args.begin() + 2, args.end());
+                std::string from, to, subject, body;
+                
+                if (!parseSendCommand(queue_args, from, to, subject, body, std::string())) {
+                    std::cerr << "Error: Invalid queue add arguments" << std::endl;
+                    return 1;
+                }
+                
+                ssmtp_mailer::Email email(from, to, subject, body);
+                mailer.enqueue(email);
+                std::cout << "Email added to queue" << std::endl;
+                logger.info("Email queued from " + from + " to " + to);
+                return 0;
+                
+            } else if (subcommand == "list") {
+                auto pending = mailer.getPendingEmails();
+                std::cout << "Pending emails: " << pending.size() << std::endl;
+                for (const auto& queued : pending) {
+                    std::string recipient = queued.email.getAllRecipients().empty() ? "none" : queued.email.getAllRecipients()[0];
+                    std::cout << "  - " << queued.email.from << " -> " << recipient 
+                              << " (Priority: " << static_cast<int>(queued.priority) << ")" << std::endl;
+                }
+                return 0;
+                
+            } else if (subcommand == "failed") {
+                auto failed = mailer.getFailedEmails();
+                std::cout << "Failed emails: " << failed.size() << std::endl;
+                for (const auto& queued : failed) {
+                    std::string recipient = queued.email.getAllRecipients().empty() ? "none" : queued.email.getAllRecipients()[0];
+                    std::cout << "  - " << queued.email.from << " -> " << recipient 
+                              << " (Error: " << queued.last_error << ")" << std::endl;
+                }
+                return 0;
+                
+            } else {
+                std::cerr << "Error: Unknown queue subcommand: " << subcommand << std::endl;
+                std::cerr << "Usage: queue [start|stop|status|add|list|failed]" << std::endl;
+                return 1;
+            }
             
         } else {
             std::cerr << "Error: Unknown command: " << command << std::endl;

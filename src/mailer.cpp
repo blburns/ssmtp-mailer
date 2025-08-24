@@ -2,6 +2,8 @@
 #include "core/logging/logger.hpp"
 #include "core/config/config_manager.hpp"
 #include "core/smtp/smtp_client.hpp"
+#include "core/queue/email_queue.hpp"
+#include "core/auth/auth_manager.hpp"
 #include <memory>
 #include <stdexcept>
 
@@ -23,14 +25,26 @@ public:
     std::string getLastError() const;
     bool testConnection();
     
+    // Queue management
+    void enqueue(const Email& email, QueuePriority priority = QueuePriority::NORMAL);
+    void startQueue();
+    void stopQueue();
+    bool isQueueRunning() const;
+    size_t getQueueSize() const;
+    std::vector<QueuedEmail> getPendingEmails() const;
+    std::vector<QueuedEmail> getFailedEmails() const;
+    
 private:
     std::unique_ptr<ConfigManager> config_manager_;
     std::unique_ptr<SMTPClient> smtp_client_;
+    std::unique_ptr<EmailQueue> email_queue_;
+    std::unique_ptr<AuthManager> auth_manager_;
     std::string last_error_;
     bool is_configured_;
     
     bool initializeConfiguration(const std::string& config_file);
     bool validateEmailPermissions(const Email& email);
+    SMTPResult sendEmailDirect(const Email& email);
 };
 
 // Mailer implementation
@@ -67,6 +81,35 @@ bool Mailer::testConnection() {
     return pImpl->testConnection();
 }
 
+// Queue management methods
+void Mailer::enqueue(const Email& email, QueuePriority priority) {
+    pImpl->enqueue(email, priority);
+}
+
+void Mailer::startQueue() {
+    pImpl->startQueue();
+}
+
+void Mailer::stopQueue() {
+    pImpl->stopQueue();
+}
+
+bool Mailer::isQueueRunning() const {
+    return pImpl->isQueueRunning();
+}
+
+size_t Mailer::getQueueSize() const {
+    return pImpl->getQueueSize();
+}
+
+std::vector<QueuedEmail> Mailer::getPendingEmails() const {
+    return pImpl->getPendingEmails();
+}
+
+std::vector<QueuedEmail> Mailer::getFailedEmails() const {
+    return pImpl->getFailedEmails();
+}
+
 // Implementation class methods
 Mailer::Impl::Impl(const std::string& config_file) 
     : is_configured_(false) {
@@ -79,14 +122,22 @@ Mailer::Impl::Impl(const std::string& config_file)
         return;
     }
     
-    try {
-        smtp_client_ = std::make_unique<SMTPClient>(*config_manager_);
-        is_configured_ = true;
-        logger.info("Mailer initialized successfully");
-    } catch (const std::exception& e) {
-        last_error_ = "Failed to create SMTP client: " + std::string(e.what());
-        logger.error(last_error_);
-    }
+            try {
+            smtp_client_ = std::make_unique<SMTPClient>(*config_manager_);
+            auth_manager_ = std::make_unique<AuthManager>();
+            email_queue_ = std::make_unique<EmailQueue>();
+            
+            // Set up the queue callback
+            email_queue_->setSendCallback([this](const Email& email) -> SMTPResult {
+                return sendEmailDirect(email);
+            });
+            
+            is_configured_ = true;
+            logger.info("Mailer initialized successfully");
+        } catch (const std::exception& e) {
+            last_error_ = "Failed to create components: " + std::string(e.what());
+            logger.error(last_error_);
+        }
 }
 
 bool Mailer::Impl::initializeConfiguration(const std::string& config_file) {
@@ -217,6 +268,63 @@ bool Mailer::Impl::validateEmailPermissions(const Email& email) {
     }
     
     return config_manager_->validateEmail(email.from, to_addresses);
+}
+
+// Queue management implementations
+void Mailer::Impl::enqueue(const Email& email, QueuePriority priority) {
+    if (!email_queue_) {
+        last_error_ = "Email queue not available";
+        return;
+    }
+    
+    email_queue_->enqueue(email, priority);
+}
+
+void Mailer::Impl::startQueue() {
+    if (!email_queue_) {
+        last_error_ = "Email queue not available";
+        return;
+    }
+    
+    email_queue_->start();
+}
+
+void Mailer::Impl::stopQueue() {
+    if (!email_queue_) {
+        last_error_ = "Email queue not available";
+        return;
+    }
+    
+    email_queue_->stop();
+}
+
+bool Mailer::Impl::isQueueRunning() const {
+    return email_queue_ ? email_queue_->isRunning() : false;
+}
+
+size_t Mailer::Impl::getQueueSize() const {
+    return email_queue_ ? email_queue_->size() : 0;
+}
+
+std::vector<QueuedEmail> Mailer::Impl::getPendingEmails() const {
+    return email_queue_ ? email_queue_->getPendingEmails() : std::vector<QueuedEmail>{};
+}
+
+std::vector<QueuedEmail> Mailer::Impl::getFailedEmails() const {
+    return email_queue_ ? email_queue_->getFailedEmails() : std::vector<QueuedEmail>{};
+}
+
+SMTPResult Mailer::Impl::sendEmailDirect(const Email& email) {
+    // This method is called by the queue to send emails directly
+    if (!smtp_client_) {
+        return SMTPResult::createError("SMTP client not available");
+    }
+    
+    try {
+        return smtp_client_->send(email);
+    } catch (const std::exception& e) {
+        return SMTPResult::createError("Exception during email sending: " + std::string(e.what()));
+    }
 }
 
 } // namespace ssmtp_mailer
