@@ -4,7 +4,7 @@
 
 ## Overview
 
-ssmtp-mailer is a lightweight, high-performance mailer application designed for Linux and BSD platforms. It serves as a smart host MTA that can handle multiple domain-specific SMTP relay accounts, making it ideal for web applications that need to send mail from different domains using various service accounts.
+ssmtp-mailer is a lightweight, high-performance mailer application designed for Linux, macOS, and BSD platforms. It serves as a smart host MTA that can handle multiple domain-specific SMTP relay accounts, making it ideal for web applications that need to send mail from different domains using various service accounts.
 
 ## Key Features
 
@@ -14,8 +14,9 @@ ssmtp-mailer is a lightweight, high-performance mailer application designed for 
 - **Template Addresses**: Support for dynamic address patterns like `contact-{type}@domain.com`
 - **SSL/TLS Support**: Secure SMTP connections with OpenSSL
 - **Configuration Management**: Modular configuration system with `/etc/ssmtp-mailer/conf.d/` support
-- **Cross-Platform**: Build for both 32-bit and 64-bit architectures
-- **Package Support**: RPM and DEB package generation
+- **Cross-Platform**: Build for Linux, macOS (Big Sur 11.0+), and BSD platforms
+- **Universal Binary Support**: Native support for both Intel and Apple Silicon Macs
+- **Package Support**: RPM, DEB, and DMG package generation
 
 ## Use Cases
 
@@ -24,19 +25,20 @@ ssmtp-mailer is a lightweight, high-performance mailer application designed for 
 - **Service Accounts**: Use Gmail, Office 365, or other SMTP providers as relay accounts
 - **Distribution Lists**: Send to multiple recipients while maintaining proper from-addresses
 - **Development/Testing**: Local mail testing without setting up full mail infrastructure
+- **macOS Development**: Build and test mail functionality on macOS systems
 
 ## Architecture
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Application  │───▶│  ssmtp-mailer   │───▶│  SMTP Server   │
-│   (Web App)    │    │   (Smart Host)   │    │  (Gmail, etc.) │
+│   Application   │───▶│  ssmtp-mailer    │───▶│  SMTP Server    │
+│   (Web App)     │    │  (Smart Host)    │    │  (Gmail, etc.)  │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
                               │
                               ▼
                        ┌──────────────────┐
                        │  Configuration   │
-                       │  Management     │
+                       │  Management      │
                        └──────────────────┘
 ```
 
@@ -44,10 +46,17 @@ ssmtp-mailer is a lightweight, high-performance mailer application designed for 
 
 ### Prerequisites
 
+#### Linux
 - C++17 compatible compiler (GCC 7+, Clang 5+)
 - CMake 3.16+
 - OpenSSL development libraries
 - pkg-config
+
+#### macOS (Big Sur 11.0+)
+- Xcode Command Line Tools (includes Clang and CMake)
+- Homebrew (recommended for OpenSSL)
+- OpenSSL 3.x (via Homebrew: `brew install openssl@3`)
+- CMake 3.16+ (via Homebrew: `brew install cmake`)
 
 ### From Source
 
@@ -63,6 +72,35 @@ make deps
 make install
 ```
 
+### Platform-Specific Builds
+
+#### macOS
+```bash
+# Build universal binary (Intel + Apple Silicon)
+make build-universal
+
+# Build for Intel Macs only
+make build-intel
+
+# Build for Apple Silicon Macs only
+make build-arm64
+
+# Create macOS DMG package
+make package-dmg
+```
+
+#### Linux
+```bash
+# Build 32-bit version
+make build-32
+
+# Build 64-bit version
+make build-64
+
+# Build both architectures
+make build-multiarch
+```
+
 ### Package Installation
 
 #### RPM (Red Hat/CentOS/Fedora)
@@ -75,13 +113,22 @@ sudo rpm -i ssmtp-mailer-1.0.0-1.x86_64.rpm
 sudo dpkg -i ssmtp-mailer_1.0.0_amd64.deb
 ```
 
+#### DMG (macOS)
+```bash
+# Mount the DMG and drag the application to Applications folder
+# Or install via command line:
+sudo installer -pkg /Volumes/ssmtp-mailer-1.0.0/ssmtp-mailer.pkg -target /
+```
+
 ## Configuration
 
 ### Main Configuration
 
-The main configuration file is located at `/etc/ssmtp-mailer/ssmtp-mailer.conf`:
+The main configuration file location depends on your platform:
 
+#### Linux
 ```ini
+# /etc/ssmtp-mailer/ssmtp-mailer.conf
 [global]
 default_hostname = localhost
 default_from = root@localhost
@@ -91,9 +138,21 @@ log_level = info
 log_file = /var/log/ssmtp-mailer.log
 ```
 
+#### macOS
+```ini
+# /usr/local/etc/ssmtp-mailer/ssmtp-mailer.conf
+[global]
+default_hostname = localhost
+default_from = root@localhost
+config_dir = /usr/local/etc/ssmtp-mailer/conf.d
+domains_dir = /usr/local/etc/ssmtp-mailer/domains
+log_level = info
+log_file = /usr/local/var/log/ssmtp-mailer.log
+```
+
 ### Domain Configuration
 
-Domain-specific settings in `/etc/ssmtp-mailer/conf.d/10-domains.conf`:
+Domain-specific settings in the appropriate `conf.d` directory:
 
 ```ini
 [domain:example.com]
@@ -113,7 +172,7 @@ relay_account = mail-service@another-domain.com
 
 ### User Configuration
 
-User account definitions in `/etc/ssmtp-mailer/conf.d/20-users.conf`:
+User account definitions:
 
 ```ini
 [user:contact-legal@dreamlikelabs.com]
@@ -135,7 +194,7 @@ allowed_recipients = ["*@dreamlikenetworks.com", "partners@*"]
 
 ### Address Mapping
 
-Routing rules in `/etc/ssmtp-mailer/mappings/`:
+Routing rules in the `mappings/` directory:
 
 ```ini
 [route:contact-legal@dreamlikelabs.com]
@@ -196,30 +255,40 @@ int main() {
 make build
 ```
 
-### Multi-Architecture Build
+### Platform-Specific Builds
 
+#### macOS
 ```bash
-# Build 32-bit version
+# Universal binary (Intel + Apple Silicon)
+make build-universal
+
+# Intel Macs only
+make build-intel
+
+# Apple Silicon Macs only
+make build-arm64
+```
+
+#### Linux
+```bash
+# 32-bit version
 make build-32
 
-# Build 64-bit version
+# 64-bit version
 make build-64
 
-# Build both
+# Both architectures
 make build-multiarch
 ```
 
 ### Package Building
 
 ```bash
-# Build RPM package
-make package-rpm
-
-# Build DEB package
-make package-deb
-
-# Build both
+# Build platform-specific packages
 make package
+
+# On macOS: creates DMG package
+# On Linux: creates RPM and DEB packages
 ```
 
 ### Development
@@ -243,6 +312,7 @@ make check-style
 
 ## Directory Structure
 
+### Linux
 ```
 /etc/ssmtp-mailer/
 ├── ssmtp-mailer.conf            # Main configuration
@@ -259,9 +329,31 @@ make check-style
 └── ssl/                         # SSL certificates
 ```
 
+### macOS
+```
+/usr/local/etc/ssmtp-mailer/
+├── ssmtp-mailer.conf            # Main configuration
+├── conf.d/                      # Modular configurations
+│   ├── 01-defaults.conf        # Global defaults
+│   ├── 10-domains.conf         # Domain definitions
+│   ├── 20-users.conf           # User accounts
+│   ├── 30-address-mapping.conf # Routing rules
+│   ├── 40-smtp-servers.conf    # SMTP servers
+│   └── 50-logging.conf         # Logging config
+├── domains/                     # Domain-specific configs
+├── users/                       # User account definitions
+├── mappings/                    # Address routing rules
+└── ssl/                         # SSL certificates
+```
+
 ## Logging
 
-Logs are written to `/var/log/ssmtp-mailer.log` by default. Log levels include:
+Log file locations depend on your platform:
+
+- **Linux**: `/var/log/ssmtp-mailer.log`
+- **macOS**: `/usr/local/var/log/ssmtp-mailer.log`
+
+Log levels include:
 
 - `debug`: Detailed debugging information
 - `info`: General information and status
@@ -276,6 +368,7 @@ Logs are written to `/var/log/ssmtp-mailer.log` by default. Log levels include:
 - Input validation and sanitization
 - Rate limiting for SMTP connections
 - Audit logging for security events
+- Platform-specific security frameworks (Security.framework on macOS)
 
 ## Contributing
 
@@ -305,12 +398,23 @@ cd build && ctest -R smtp_tests
 3. **SSL Errors**: Ensure SSL certificates are valid and up-to-date
 4. **Permission Denied**: Check file permissions for configuration and log files
 
+### Platform-Specific Issues
+
+#### macOS
+- **Xcode Command Line Tools**: Ensure they are installed: `xcode-select --install`
+- **OpenSSL**: Use Homebrew version: `brew install openssl@3`
+- **Architecture Mismatch**: Use `make build-universal` for compatibility with both Intel and Apple Silicon
+
+#### Linux
+- **Library Dependencies**: Install development packages: `sudo apt-get install libssl-dev`
+- **Compiler Version**: Ensure GCC 7+ or Clang 5+ is installed
+
 ### Debug Mode
 
 ```bash
 # Enable debug logging
 make debug
-# Edit /etc/ssmtp-mailer/conf.d/50-logging.conf
+# Edit the appropriate logging config file for your platform
 # Set log_level = debug
 ```
 
@@ -334,6 +438,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Metrics and monitoring
 - [ ] Docker containerization
 - [ ] Kubernetes deployment support
+- [x] macOS Big Sur+ support
+- [x] Universal binary support (Intel + Apple Silicon)
 
 ## Acknowledgments
 
@@ -341,3 +447,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with modern C++ standards
 - OpenSSL for secure communications
 - CMake for cross-platform builds
+- Apple frameworks for macOS integration
