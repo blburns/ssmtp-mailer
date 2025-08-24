@@ -2,8 +2,8 @@
 
 # Add test executable
 add_executable(ssmtp-mailer-tests
-    # Add test source files here when they exist
-    # test_main.cpp
+    test_main.cpp
+    # Add more test source files here when they exist
     # test_smtp.cpp
     # test_config.cpp
 )
