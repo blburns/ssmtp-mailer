@@ -431,7 +431,7 @@ make debug
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
@@ -447,8 +447,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] SPF record generation
 - [ ] Web-based configuration interface
 - [ ] Metrics and monitoring
-- [ ] Docker containerization
-- [ ] Kubernetes deployment support
+- [ ] Windows support (MSVC and MinGW builds)
+- [ ] Linux package support (DEB and RPM packages)
+- [ ] FreeBSD support and package integration
+- [ ] Enhanced macOS support (Catalina+ compatibility)
 - [x] macOS Big Sur+ support
 - [x] Universal binary support (Intel + Apple Silicon)
 
