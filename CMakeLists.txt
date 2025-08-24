@@ -5,6 +5,20 @@ project(ssmtp-mailer VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Platform detection
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS deployment version" FORCE)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for macOS" FORCE)
+    set(PLATFORM_MACOS TRUE)
+    message(STATUS "Building for macOS (Big Sur 11.0+)")
+elseif(UNIX AND NOT APPLE)
+    set(PLATFORM_LINUX TRUE)
+    message(STATUS "Building for Linux")
+elseif(WIN32)
+    set(PLATFORM_WINDOWS TRUE)
+    message(STATUS "Building for Windows")
+endif()
+
 # Build options
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_TESTS "Build tests" ON)
@@ -25,9 +39,47 @@ if(ENABLE_SSL)
     find_package(OpenSSL REQUIRED)
 endif()
 
-# Find system libraries
-find_library(SOCKET_LIBRARY socket)
-find_library(RT_LIBRARY rt)
+# Platform-specific library handling
+if(PLATFORM_MACOS)
+    # macOS specific libraries
+    find_library(SECURITY_FRAMEWORK Security)
+    find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(SYSTEM_CONFIGURATION_FRAMEWORK SystemConfiguration)
+    
+    # macOS doesn't need separate socket or rt libraries
+    set(PLATFORM_LIBRARIES 
+        ${SECURITY_FRAMEWORK}
+        ${CORE_FOUNDATION_FRAMEWORK}
+        ${SYSTEM_CONFIGURATION_FRAMEWORK}
+    )
+    
+    # Set macOS-specific compiler flags
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+    
+    # Enable universal binary support for Intel + Apple Silicon
+    if(CMAKE_OSX_ARCHITECTURES MATCHES ".*arm64.*")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -target arm64-apple-macos11.0")
+    endif()
+    if(CMAKE_OSX_ARCHITECTURES MATCHES ".*x86_64.*")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -target x86_64-apple-macos11.0")
+    endif()
+    
+elseif(PLATFORM_LINUX)
+    # Linux specific libraries
+    find_library(SOCKET_LIBRARY socket)
+    find_library(RT_LIBRARY rt)
+    
+    set(PLATFORM_LIBRARIES 
+        ${SOCKET_LIBRARY}
+        ${RT_LIBRARY}
+        pthread
+    )
+    
+    # Linux compiler flags
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+endif()
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -57,20 +109,27 @@ set_target_properties(ssmtp-mailer-lib PROPERTIES
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
+# Platform-specific target properties
+if(PLATFORM_MACOS)
+    set_target_properties(ssmtp-mailer PROPERTIES
+        MACOSX_BUNDLE FALSE
+        MACOSX_RPATH "@executable_path/../lib"
+    )
+    set_target_properties(ssmtp-mailer-lib PROPERTIES
+        MACOSX_RPATH "@loader_path"
+    )
+endif()
+
 # Link libraries
 target_link_libraries(ssmtp-mailer
     ssmtp-mailer-lib
     ${OPENSSL_LIBRARIES}
-    ${SOCKET_LIBRARY}
-    ${RT_LIBRARY}
-    pthread
+    ${PLATFORM_LIBRARIES}
 )
 
 target_link_libraries(ssmtp-mailer-lib
     ${OPENSSL_LIBRARIES}
-    ${SOCKET_LIBRARY}
-    ${RT_LIBRARY}
-    pthread
+    ${PLATFORM_LIBRARIES}
 )
 
 # Compiler flags
@@ -85,6 +144,15 @@ target_compile_options(ssmtp-mailer-lib PRIVATE
     -fPIC
 )
 
+# Platform-specific compile definitions
+if(PLATFORM_MACOS)
+    target_compile_definitions(ssmtp-mailer PRIVATE PLATFORM_MACOS=1)
+    target_compile_definitions(ssmtp-mailer-lib PRIVATE PLATFORM_MACOS=1)
+elseif(PLATFORM_LINUX)
+    target_compile_definitions(ssmtp-mailer PRIVATE PLATFORM_LINUX=1)
+    target_compile_definitions(ssmtp-mailer-lib PRIVATE PLATFORM_LINUX=1)
+endif()
+
 # Install targets
 install(TARGETS ssmtp-mailer ssmtp-mailer-lib
     RUNTIME DESTINATION bin
@@ -94,13 +162,19 @@ install(TARGETS ssmtp-mailer ssmtp-mailer-lib
 
 install(DIRECTORY include/ DESTINATION include)
 
-# Install configuration files
-install(DIRECTORY config/ DESTINATION etc/ssmtp-mailer)
+# Platform-specific install paths
+if(PLATFORM_MACOS)
+    # macOS install paths
+    install(DIRECTORY config/ DESTINATION /usr/local/etc/ssmtp-mailer)
+else()
+    # Linux install paths
+    install(DIRECTORY config/ DESTINATION etc/ssmtp-mailer)
+endif()
 
 # Tests
 if(BUILD_TESTS)
     enable_testing()
-    add_subdirectory(tests)
+    add_subdirectory(src/tests)
 endif()
 
 # Examples
@@ -127,3 +201,18 @@ install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
     DESTINATION lib/cmake/ssmtp-mailer
 )
+
+# macOS package generation
+if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
+    # Create macOS package
+    set(CPACK_GENERATOR "DragNDrop")
+    set(CPACK_DMG_VOLUME_NAME "ssmtp-mailer-${PROJECT_VERSION}")
+    set(CPACK_DMG_FORMAT "UDZO")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer")
+    set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
+    set(CPACK_PACKAGE_CONTACT "support@example.com")
+    
+    include(CPack)
+endif()
