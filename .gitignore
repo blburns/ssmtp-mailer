@@ -1,0 +1,103 @@
+# Build directories
+build/
+dist/
+out/
+cmake-build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+# Makefile  # Allow our project Makefile
+*.cmake
+!CMakeLists.txt
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+ssmtp-mailer
+
+# Package files
+*.rpm
+*.deb
+*.tar.gz
+*.zip
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Dependencies
+third_party/
+vendor/
+
+# Test coverage
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# Valgrind output
+*.valgrind
+
+# Core dumps
+core
+core.*
+
+# SSL certificates and keys (for security)
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# Configuration files with sensitive data
+*.conf
+!*.conf.example
+
+# Documentation build
+docs/_build/
+docs/html/
+
+# Python cache (if any build scripts use Python)
+__pycache__/
+*.pyc
+*.pyo
