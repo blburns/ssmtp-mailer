@@ -85,25 +85,25 @@ git clone https://github.com/your-repo/ssmtp-mailer.git
 cd ssmtp-mailer
 
 # Make build script executable
-chmod +x scripts/build.sh
+chmod +x scripts/build-linux.sh
 
 # Run the build script
-./scripts/build.sh
+./scripts/build-linux.sh
 ```
 
 #### Build with Options
 ```bash
 # Build with debug symbols
-./scripts/build.sh --debug
+./scripts/build-linux.sh --debug
 
 # Build with specific CMake options
-./scripts/build.sh --cmake-options "-DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON"
+./scripts/build-linux.sh --cmake-options "-DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON"
 
 # Clean build
-./scripts/build.sh --clean
+./scripts/build-linux.sh --clean
 
 # Install after build
-./scripts/build.sh --install
+./scripts/build-linux.sh --install
 ```
 
 ### Method 2: Manual CMake Build
@@ -452,7 +452,7 @@ sudo yum install gcc-toolset-9  # CentOS/RHEL
 sudo chown -R $USER:$USER .
 
 # Fix permissions
-chmod +x scripts/build.sh
+chmod +x scripts/build-linux.sh
 ```
 
 ### Build Debugging
