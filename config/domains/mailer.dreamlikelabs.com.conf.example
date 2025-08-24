@@ -1,0 +1,28 @@
+# Domain Configuration for mailer.dreamlikelabs.com
+# This is the local mailer domain that receives emails and relays them
+
+[domain:mailer.dreamlikelabs.com]
+# Enable/disable this domain
+enabled = true
+
+# Local SMTP server settings (if you want to receive emails locally)
+# For relay-only setup, this can be minimal
+smtp_server = localhost
+smtp_port = 25
+
+# Authentication method (NONE for local relay)
+auth_method = NONE
+
+# Local relay account
+relay_account = mail-relay@mailer.dreamlikelabs.com
+
+# No authentication needed for local relay
+username = 
+password = 
+
+# SSL/TLS settings (usually not needed for local relay)
+use_ssl = false
+use_starttls = false
+
+# This domain is configured for relay operations
+# It will forward emails to the main domain (dreamlikelabs.com)

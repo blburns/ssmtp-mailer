@@ -1,0 +1,36 @@
+# Domain Configuration for dreamlikelabs.com
+# This domain uses Gmail SMTP (smtp.dreamlikelabs.com CNAME -> smtp.gmail.com)
+
+[domain:dreamlikelabs.com]
+# Enable/disable this domain
+enabled = true
+
+# Gmail SMTP server settings
+smtp_server = smtp.gmail.com
+smtp_port = 587
+
+# Gmail authentication method
+auth_method = LOGIN
+
+# Remote relay account (Gmail account)
+relay_account = mail-relay@dreamlikelabs.com
+
+# Gmail authentication credentials
+username = mail-relay@dreamlikelabs.com
+password = your_gmail_app_password_here
+
+# Note: For Gmail, you need to use an App Password, not your regular password
+# To generate an App Password:
+# 1. Enable 2-Factor Authentication on your Google account
+# 2. Go to Google Account > Security > App passwords
+# 3. Generate a password for "Mail" or "Other (Custom name)"
+
+# OAuth2 token (alternative to App Password, more secure)
+# oauth2_token = your_oauth2_token_here
+
+# Gmail SSL/TLS settings
+use_ssl = false
+use_starttls = true
+
+# Gmail requires STARTTLS on port 587
+# No SSL certificate files needed for Gmail

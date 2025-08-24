@@ -1,0 +1,45 @@
+# Address Mapping Configuration for Mail Relay
+# This file maps local addresses to remote addresses for relay operations
+
+# General Contact
+[mapping:contact-general]
+from_pattern = contact-general@mailer.dreamlikelabs.com
+to_pattern = contact-general@dreamlikelabs.com
+smtp_account = mail-relay@dreamlikelabs.com
+domain = dreamlikelabs.com
+
+# Legal Contact
+[mapping:contact-legal]
+from_pattern = contact-legal@mailer.dreamlikelabs.com
+to_pattern = contact-legal@dreamlikelabs.com
+smtp_account = mail-relay@dreamlikelabs.com
+domain = dreamlikelabs.com
+
+# Privacy Contact
+[mapping:contact-privacy]
+from_pattern = contact-privacy@mailer.dreamlikelabs.com
+to_pattern = contact-privacy@dreamlikelabs.com
+smtp_account = mail-relay@dreamlikelabs.com
+domain = dreamlikelabs.com
+
+# Support Contact
+[mapping:contact-support]
+from_pattern = contact-support@mailer.dreamlikelabs.com
+to_pattern = contact-support@dreamlikelabs.com
+smtp_account = mail-relay@dreamlikelabs.com
+domain = dreamlikelabs.com
+
+# Sales Contact
+[mapping:contact-sales]
+from_pattern = contact-sales@mailer.dreamlikelabs.com
+to_pattern = contact-sales@dreamlikelabs.com
+smtp_account = mail-relay@dreamlikelabs.com
+domain = dreamlikelabs.com
+
+# Wildcard mapping for any other addresses
+[mapping:catch-all]
+from_pattern = *@mailer.dreamlikelabs.com
+to_pattern = noreply@dreamlikelabs.com
+smtp_account = mail-relay@dreamlikelabs.com
+domain = dreamlikelabs.com
+allowed_recipients = noreply@dreamlikelabs.com
