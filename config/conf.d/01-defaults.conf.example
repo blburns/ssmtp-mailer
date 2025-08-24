@@ -1,0 +1,41 @@
+# ssmtp-mailer Defaults Configuration
+# This file contains global default values that can be overridden by domain-specific configs
+
+[defaults]
+# Default SMTP settings
+default_smtp_port = 587
+default_use_starttls = true
+default_use_ssl = false
+
+# Default authentication
+default_auth_method = login
+default_username = 
+default_password = 
+
+# Default SSL settings
+default_ssl_verify = true
+default_ssl_cert_file = 
+default_ssl_key_file = 
+default_ssl_ca_file = 
+
+# Default connection settings
+default_connection_timeout = 30
+default_read_timeout = 60
+default_write_timeout = 60
+
+# Default rate limiting
+default_rate_limit_per_minute = 100
+
+# Default logging
+default_log_level = info
+default_log_format = "{timestamp} [{level}] {message}"
+
+# Default email settings
+default_charset = UTF-8
+default_encoding = 8bit
+default_line_length = 78
+
+# Default retry settings
+default_max_retries = 3
+default_retry_delay = 5
+default_backoff_multiplier = 2.0

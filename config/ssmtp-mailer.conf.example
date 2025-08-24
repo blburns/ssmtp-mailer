@@ -1,0 +1,45 @@
+# ssmtp-mailer Configuration File
+# Simple SMTP Mailer - Main Configuration
+
+[global]
+# Basic settings
+default_hostname = localhost
+default_from = root@localhost
+
+# Configuration directories
+config_dir = /etc/ssmtp-mailer/conf.d
+domains_dir = /etc/ssmtp-mailer/domains
+users_dir = /etc/ssmtp-mailer/users
+mappings_dir = /etc/ssmtp-mailer/mappings
+ssl_dir = /etc/ssmtp-mailer/ssl
+
+# Logging configuration
+log_file = /var/log/ssmtp-mailer.log
+log_level = info
+
+# Connection settings
+max_connections = 10
+connection_timeout = 30
+read_timeout = 60
+write_timeout = 60
+
+# Rate limiting
+enable_rate_limiting = true
+rate_limit_per_minute = 100
+
+# Security settings
+enable_ssl_verification = true
+allow_insecure_connections = false
+
+# Performance settings
+enable_connection_pooling = true
+max_retry_attempts = 3
+retry_delay_seconds = 5
+
+# Default authentication method
+default_auth_method = login
+
+# Default SMTP settings
+default_smtp_port = 587
+default_use_starttls = true
+default_use_ssl = false

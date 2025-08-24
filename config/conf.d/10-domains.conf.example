@@ -1,0 +1,41 @@
+# ssmtp-mailer Domains Configuration
+# This file defines domain-specific SMTP server configurations
+
+[domain:blburns.com]
+enabled = true
+smtp_server = smtp.gmail.com
+smtp_port = 587
+auth_method = oauth2
+service_account = noreply@blburns.com
+relay_account = mail-relay@blburns.com
+username = noreply@blburns.com
+password = 
+oauth2_token = 
+use_ssl = false
+use_starttls = true
+
+[domain:d1ns.com]
+enabled = true
+smtp_server = smtp.gmail.com
+smtp_port = 587
+auth_method = oauth2
+service_account = mailer@d1ns.com
+relay_account = mailer@d1ns.com
+username = mailer@d1ns.com
+password = 
+oauth2_token = 
+use_ssl = false
+use_starttls = true
+
+[domain:dreamlikelabs.com]
+enabled = true
+smtp_server = smtp.office365.com
+smtp_port = 587
+auth_method = username_password
+service_account = mailer@postal.dreamlikelabs.com
+relay_account = mailer@postal.dreamlikelabs.com
+username = mailer@postal.dreamlikelabs.com
+password = your_password_here
+oauth2_token = 
+use_ssl = false
+use_starttls = true

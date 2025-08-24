@@ -1,0 +1,94 @@
+# ssmtp-mailer Address Mapping Configuration
+# This file defines routing rules for mapping from-addresses to SMTP accounts
+
+[route:contact@mailer.blburns.com]
+from_addresses = ["contact@mailer.blburns.com"]
+to_domains = ["blburns.com", "customers.*"]
+smtp_account = noreply@blburns.com
+domain = blburns.com
+allowed_recipients = ["*@blburns.com", "customers@*"]
+
+[route:mailer@d1ns.com]
+from_addresses = ["mailer@d1ns.com"]
+to_domains = ["d1ns.com", "partners.*"]
+smtp_account = mailer@d1ns.com
+domain = d1ns.com
+allowed_recipients = ["*@d1ns.com", "partners@*"]
+
+[route:mailer@postal.dreamlikelabs.com]
+from_addresses = ["mailer@postal.dreamlikelabs.com"]
+to_domains = ["dreamlikelabs.com", "customers.*"]
+smtp_account = mailer@postal.dreamlikelabs.com
+domain = dreamlikelabs.com
+allowed_recipients = ["*@dreamlikelabs.com", "customers@*"]
+
+[route:contact-legal@dreamlikelabs.com]
+from_addresses = ["contact-legal@dreamlikelabs.com"]
+to_domains = ["dreamlikelabs.com", "legal.*", "customers.*"]
+smtp_account = mailer@postal.dreamlikelabs.com
+domain = dreamlikelabs.com
+allowed_recipients = ["*@dreamlikelabs.com", "legal@*", "customers@*"]
+
+[route:contact-privacy@dreamlikelabs.com]
+from_addresses = ["contact-privacy@dreamlikelabs.com"]
+to_domains = ["dreamlikelabs.com", "privacy.*", "customers.*"]
+smtp_account = mailer@postal.dreamlikelabs.com
+domain = dreamlikelabs.com
+allowed_recipients = ["*@dreamlikelabs.com", "privacy@*", "customers@*"]
+
+[route:contact-general@dreamlikelabs.com]
+from_addresses = ["contact-general@dreamlikelabs.com"]
+to_domains = ["dreamlikelabs.com", "general.*", "customers.*"]
+smtp_account = mailer@postal.dreamlikelabs.com
+domain = dreamlikelabs.com
+allowed_recipients = ["*@dreamlikelabs.com", "general@*", "customers@*"]
+
+[route:contact-support@dreamlikelabs.com]
+from_addresses = ["contact-support@dreamlikelabs.com"]
+to_domains = ["dreamlikelabs.com", "support.*", "customers.*"]
+smtp_account = mailer@postal.dreamlikelabs.com
+domain = dreamlikelabs.com
+allowed_recipients = ["*@dreamlikelabs.com", "support@*", "customers@*"]
+
+[route:contact-sales@dreamlikelabs.com]
+from_addresses = ["contact-sales@dreamlikelabs.com"]
+to_domains = ["dreamlikelabs.com", "sales.*", "customers.*"]
+smtp_account = mailer@postal.dreamlikelabs.com
+domain = dreamlikelabs.com
+allowed_recipients = ["*@dreamlikelabs.com", "sales@*", "customers@*"]
+
+# Template-based routing for dreamlikenetworks.com
+[route:contact-legal@dreamlikenetworks.com]
+from_addresses = ["contact-legal@dreamlikenetworks.com"]
+to_domains = ["dreamlikenetworks.com", "legal.*", "partners.*"]
+smtp_account = mailer@dreamlikenetworks.com
+domain = dreamlikenetworks.com
+allowed_recipients = ["*@dreamlikenetworks.com", "legal@*", "partners@*"]
+
+[route:contact-privacy@dreamlikenetworks.com]
+from_addresses = ["contact-privacy@dreamlikenetworks.com"]
+to_domains = ["dreamlikenetworks.com", "privacy.*", "partners.*"]
+smtp_account = mailer@dreamlikenetworks.com
+domain = dreamlikenetworks.com
+allowed_recipients = ["*@dreamlikenetworks.com", "privacy@*", "partners@*"]
+
+[route:contact-general@dreamlikenetworks.com]
+from_addresses = ["contact-general@dreamlikenetworks.com"]
+to_domains = ["dreamlikenetworks.com", "general.*", "partners.*"]
+smtp_account = mailer@dreamlikenetworks.com
+domain = dreamlikenetworks.com
+allowed_recipients = ["*@dreamlikenetworks.com", "general@*", "partners@*"]
+
+[route:contact-support@dreamlikenetworks.com]
+from_addresses = ["contact-support@dreamlikenetworks.com"]
+to_domains = ["dreamlikenetworks.com", "support.*", "partners.*"]
+smtp_account = mailer@dreamlikenetworks.com
+domain = dreamlikenetworks.com
+allowed_recipients = ["*@dreamlikenetworks.com", "support@*", "partners@*"]
+
+[route:contact-sales@dreamlikenetworks.com]
+from_addresses = ["contact-sales@dreamlikenetworks.com"]
+to_domains = ["dreamlikenetworks.com", "sales.*", "partners.*"]
+smtp_account = mailer@dreamlikenetworks.com
+domain = dreamlikenetworks.com
+allowed_recipients = ["*@dreamlikenetworks.com", "sales@*", "partners@*"]

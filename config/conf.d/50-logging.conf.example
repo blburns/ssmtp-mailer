@@ -1,0 +1,57 @@
+# ssmtp-mailer Logging Configuration
+# This file configures logging behavior and output formats
+
+[logging]
+# Log level (debug, info, warning, error, critical)
+log_level = info
+
+# Log file path
+log_file = /var/log/ssmtp-mailer.log
+
+# Log format with placeholders
+log_format = "{timestamp} [{level}] [{thread}] {message}"
+
+# Enable/disable console output
+console_enabled = true
+
+# Enable/disable file output
+file_enabled = true
+
+# Enable/disable timestamps
+timestamp_enabled = true
+
+# Enable/disable log levels in output
+log_level_enabled = true
+
+# Enable/disable thread IDs in output
+thread_id_enabled = true
+
+# Log rotation settings
+max_log_size = 10485760  # 10MB
+max_log_files = 5
+
+# Log specific events
+log_smtp_connections = true
+log_smtp_commands = true
+log_smtp_responses = true
+log_authentication = true
+log_email_sends = true
+log_errors = true
+log_warnings = true
+
+# Debug logging (when log_level = debug)
+debug_smtp_traffic = false
+debug_config_loading = false
+debug_address_mapping = false
+debug_ssl_handshake = false
+
+# Performance logging
+log_performance_metrics = true
+log_connection_times = true
+log_email_processing_times = true
+
+# Security logging
+log_failed_authentication = true
+log_rate_limit_violations = true
+log_invalid_requests = true
+log_permission_denied = true

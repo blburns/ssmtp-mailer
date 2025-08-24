@@ -1,0 +1,85 @@
+# ssmtp-mailer Users Configuration
+# This file defines user account configurations and permissions
+
+[user:contact@mailer.blburns.com]
+domain = blburns.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = false
+allowed_recipients = ["*@blburns.com", "customers@*"]
+allowed_domains = ["blburns.com", "customers.*"]
+
+[user:mailer@d1ns.com]
+domain = d1ns.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = false
+allowed_recipients = ["*@d1ns.com", "partners@*"]
+allowed_domains = ["d1ns.com", "partners.*"]
+
+[user:mailer@postal.dreamlikelabs.com]
+domain = dreamlikelabs.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = false
+allowed_recipients = ["*@dreamlikelabs.com", "customers@*"]
+allowed_domains = ["dreamlikelabs.com", "customers.*"]
+
+[user:contact-legal@dreamlikelabs.com]
+domain = dreamlikelabs.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = false
+allowed_recipients = ["*@dreamlikelabs.com", "legal@*", "customers@*"]
+allowed_domains = ["dreamlikelabs.com", "legal.*", "customers.*"]
+
+[user:contact-privacy@dreamlikelabs.com]
+domain = dreamlikelabs.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = false
+allowed_recipients = ["*@dreamlikelabs.com", "privacy@*", "customers@*"]
+allowed_domains = ["dreamlikelabs.com", "privacy.*", "customers.*"]
+
+[user:contact-general@dreamlikelabs.com]
+domain = dreamlikelabs.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = false
+allowed_recipients = ["*@dreamlikelabs.com", "general@*", "customers@*"]
+allowed_domains = ["dreamlikelabs.com", "general.*", "customers.*"]
+
+[user:contact-support@dreamlikelabs.com]
+domain = dreamlikelabs.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = false
+allowed_recipients = ["*@dreamlikelabs.com", "support@*", "customers@*"]
+allowed_domains = ["dreamlikelabs.com", "support.*", "customers.*"]
+
+[user:contact-sales@dreamlikelabs.com]
+domain = dreamlikelabs.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = false
+allowed_recipients = ["*@dreamlikelabs.com", "sales@*", "customers@*"]
+allowed_domains = ["dreamlikelabs.com", "sales.*", "customers.*"]
+
+# Template address example for dreamlikenetworks.com
+[user:contact-{type}@dreamlikenetworks.com]
+domain = dreamlikenetworks.com
+enabled = true
+can_send_from = true
+can_send_to = true
+template_address = true
+allowed_types = ["legal", "privacy", "general", "support", "sales"]
+allowed_recipients = ["*@dreamlikenetworks.com", "partners@*"]
+allowed_domains = ["dreamlikenetworks.com", "partners.*"]
