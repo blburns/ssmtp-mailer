@@ -160,6 +160,80 @@ format:
 check-style:
 	find $(SRC_DIR) $(INCLUDE_DIR) -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
 
+# Show project information
+info:
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                              PROJECT INFO                                    ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+	@echo "  Project Name:    $(PROJECT_NAME)"
+	@echo "  Version:         $(VERSION)"
+	@echo "  Platform:        $(PLATFORM)"
+	@echo "  Compiler:        $(CXX)"
+	@echo "  Build Directory: $(BUILD_DIR)"
+	@echo "  Source Directory: $(SRC_DIR)"
+	@echo "  Include Directory: $(INCLUDE_DIR)"
+	@echo "  Config Directory: $(CONFIG_DIR)"
+	@echo ""
+
+# Show build status
+status:
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                              BUILD STATUS                                    ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+	@if [ -d "$(BUILD_DIR)" ]; then \
+		echo "  Build Directory: ✅ Exists ($(BUILD_DIR))"; \
+		if [ -f "$(BUILD_DIR)/bin/$(PROJECT_NAME)" ]; then \
+			echo "  Executable:      ✅ Built ($(BUILD_DIR)/bin/$(PROJECT_NAME))"; \
+			echo "  Architecture:    $(shell file $(BUILD_DIR)/bin/$(PROJECT_NAME) | grep -o 'Mach-O.*' || echo 'Unknown')"; \
+		else \
+			echo "  Executable:      ❌ Not built"; \
+		fi; \
+		if [ -f "$(BUILD_DIR)/lib/lib$(PROJECT_NAME).dylib" ] || [ -f "$(BUILD_DIR)/lib/lib$(PROJECT_NAME).so" ]; then \
+			echo "  Library:         ✅ Built"; \
+		else \
+			echo "  Library:         ❌ Not built"; \
+		fi; \
+	else \
+		echo "  Build Directory: ❌ Does not exist"; \
+		echo "  Run 'make build' to create it"; \
+	fi
+	@echo ""
+
+# Show dependencies status
+deps-status:
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                            DEPENDENCIES STATUS                             ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+	@echo "  Platform:        $(PLATFORM)"
+	@echo "  Compiler:        $(shell which $(CXX) 2>/dev/null || echo "❌ Not found")"
+	@echo "  CMake:           $(shell which cmake 2>/dev/null || echo "❌ Not found")"
+	@echo "  Make:            $(shell which make 2>/dev/null || echo "❌ Not found")"
+	@echo "  pkg-config:      $(shell which pkg-config 2>/dev/null || echo "❌ Not found")"
+	@echo "  OpenSSL:         $(shell pkg-config --exists openssl && echo "✅ Found" || echo "❌ Not found")"
+ifeq ($(PLATFORM),macos)
+	@echo "  Homebrew:        $(shell which brew 2>/dev/null || echo "❌ Not found")"
+	@echo "  Xcode Tools:     $(shell xcode-select -p 2>/dev/null && echo "✅ Installed" || echo "❌ Not installed")"
+else
+	@echo "  Build Tools:     $(shell which g++ 2>/dev/null && echo "✅ Found" || echo "❌ Not found")"
+endif
+	@echo ""
+
+# Quick build check
+check:
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                              QUICK CHECK                                     ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+	@if [ -f "$(BUILD_DIR)/bin/$(PROJECT_NAME)" ]; then \
+		echo "✅ Build successful - executable found"; \
+		echo "  Location: $(BUILD_DIR)/bin/$(PROJECT_NAME)"; \
+		echo "  Size: $(shell ls -lh $(BUILD_DIR)/bin/$(PROJECT_NAME) | awk '{print $$5}')"; \
+		echo "  Architecture: $(shell file $(BUILD_DIR)/bin/$(PROJECT_NAME) | grep -o 'Mach-O.*' || echo 'Unknown')"; \
+	else \
+		echo "❌ Build not found or failed"; \
+		echo "  Run 'make build' to build the project"; \
+	fi
+	@echo ""
+
 # Dependencies
 deps:
 ifeq ($(PLATFORM),macos)
@@ -219,40 +293,128 @@ endif
 
 # Help
 help:
-	@echo "Available targets:"
-	@echo "  all          - Build the project (default)"
-	@echo "  build        - Build using CMake"
-	@echo "  clean        - Clean build artifacts"
-	@echo "  install      - Install to system"
-	@echo "  uninstall    - Remove from system"
-	@echo "  test         - Run tests"
-	@echo "  package      - Build platform-specific packages"
-ifeq ($(PLATFORM),macos)
-	@echo "  package-dmg  - Build macOS DMG package"
-	@echo "  build-universal - Build universal binary (Intel + Apple Silicon)"
-	@echo "  build-intel  - Build for Intel Macs only"
-	@echo "  build-arm64  - Build for Apple Silicon Macs only"
-else
-	@echo "  package-rpm  - Build RPM package only"
-	@echo "  package-deb  - Build DEB package only"
-	@echo "  build-32     - Build 32-bit version"
-	@echo "  build-64     - Build 64-bit version"
-	@echo "  build-multiarch - Build for both 32-bit and 64-bit"
-endif
-	@echo "  debug        - Build with debug info"
-	@echo "  release      - Build release version"
-	@echo "  analyze      - Run static analysis"
-	@echo "  format       - Format code"
-	@echo "  check-style  - Check code style"
-	@echo "  deps         - Install dependencies"
-ifeq ($(PLATFORM),linux)
-	@echo "  docker-build - Build Docker image"
-	@echo "  docker-run   - Run Docker container"
-endif
-	@echo "  help         - Show this help"
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                           ssmtp-mailer Makefile Help                         ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "Platform: $(PLATFORM)"
-	@echo "Compiler: $(CXX)"
-	@echo "Parallel jobs: $(PARALLEL_JOBS)"
+	@echo "📋 BUILD TARGETS:"
+	@echo "  all              - Build the project (default target)"
+	@echo "  build            - Build using CMake with default settings"
+	@echo "  clean            - Clean build artifacts and directories"
+	@echo "  install          - Install to system-wide location"
+	@echo "  uninstall        - Remove from system"
+	@echo ""
+	@echo "🧪 TESTING:"
+	@echo "  test             - Run all tests"
+	@echo ""
+	@echo "📦 PACKAGING:"
+	@echo "  package          - Build platform-specific packages"
+ifeq ($(PLATFORM),macos)
+	@echo "  package-dmg      - Build macOS DMG package for distribution"
+else
+	@echo "  package-rpm      - Build RPM package (Red Hat/CentOS/Fedora)"
+	@echo "  package-deb      - Build DEB package (Debian/Ubuntu)"
+endif
+	@echo ""
+	@echo "🏗️  ARCHITECTURE-SPECIFIC BUILDS:"
+ifeq ($(PLATFORM),macos)
+	@echo "  build-universal  - Build universal binary (Intel + Apple Silicon) ⭐ RECOMMENDED"
+	@echo "  build-intel      - Build for Intel Macs only (x86_64)"
+	@echo "  build-arm64      - Build for Apple Silicon Macs only (arm64)"
+else
+	@echo "  build-32         - Build 32-bit version for Linux"
+	@echo "  build-64         - Build 64-bit version for Linux"
+	@echo "  build-multiarch  - Build for both 32-bit and 64-bit architectures"
+endif
+	@echo ""
+	@echo "🔧 DEVELOPMENT:"
+	@echo "  debug            - Build with debug information and symbols"
+	@echo "  release          - Build optimized release version"
+	@echo "  analyze          - Run static analysis with clang-tidy"
+	@echo "  format           - Format code using clang-format"
+	@echo "  check-style      - Check code style without modifying files"
+	@echo ""
+	@echo "📚 DEPENDENCIES:"
+	@echo "  deps             - Install required dependencies for current platform"
+ifeq ($(PLATFORM),linux)
+	@echo ""
+	@echo "🐳 DOCKER:"
+	@echo "  docker-build     - Build Docker image"
+	@echo "  docker-run       - Run Docker container"
+endif
+	@echo ""
+		@echo "❓ HELP & INFO:"
+	@echo "  help             - Show this detailed help message"
+	@echo "  info             - Show project information"
+	@echo "  status           - Show build status"
+	@echo "  deps-status      - Show dependencies status"
+	@echo "  check            - Quick build check"
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                              PLATFORM INFO                                   ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+	@echo "  Platform:        $(PLATFORM)"
+	@echo "  Compiler:        $(CXX)"
+	@echo "  Version:         $(VERSION)"
+	@echo "  Parallel Jobs:   $(PARALLEL_JOBS)"
+	@echo "  Build Directory: $(BUILD_DIR)"
+	@echo "  Install Prefix:  $(INSTALL_PREFIX)"
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                              QUICK START                                     ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+ifeq ($(PLATFORM),macos)
+	@echo "  🍎 macOS Quick Start:"
+	@echo "    1. make deps                    # Install dependencies via Homebrew"
+	@echo "    2. make build-universal         # Build universal binary"
+	@echo "    3. make package-dmg             # Create distribution package"
+	@echo "    4. sudo make install            # Install to system"
+else
+	@echo "  🐧 Linux Quick Start:"
+	@echo "    1. make deps                    # Install dependencies via apt"
+	@echo "    2. make build                   # Build for current architecture"
+	@echo "    3. make package                 # Create RPM/DEB packages"
+	@echo "    4. sudo make install            # Install to system"
+endif
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                              EXAMPLES                                        ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+	@echo "  # Clean build with debug info"
+	@echo "  make clean && make debug"
+	@echo ""
+	@echo "  # Build and run tests"
+	@echo "  make build && make test"
+	@echo ""
+	@echo "  # Build universal binary and create package (macOS)"
+ifeq ($(PLATFORM),macos)
+	@echo "  make build-universal && make package-dmg"
+else
+	@echo "  make build-64 && make package"
+endif
+	@echo ""
+	@echo "  # Install dependencies and build"
+	@echo "  make deps && make build"
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                              TROUBLESHOOTING                                 ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+	@echo "  • If build fails, try: make clean && make build"
+	@echo "  • If dependencies are missing: make deps"
+	@echo "  • For debug info: make debug"
+	@echo "  • Check platform detection: make help"
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+	@echo "║                              MORE INFO                                       ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+	@echo "  • Project: $(PROJECT_NAME) v$(VERSION)"
+	@echo "  • README:  README.md"
+ifeq ($(PLATFORM),macos)
+	@echo "  • macOS Guide: docs/macos-build.md"
+	@echo "  • Build Script: scripts/build-macos.sh"
+endif
+	@echo "  • CMake Config: CMakeLists.txt"
+	@echo ""
+	@echo "💡 Tip: Use 'make help' anytime to see this information again!"
 
-.PHONY: all build clean install uninstall test package package-rpm package-deb package-dmg build-32 build-64 build-multiarch build-universal build-intel build-arm64 debug release analyze format check-style deps docker-build docker-run help
+.PHONY: all build clean install uninstall test package package-rpm package-deb package-dmg build-32 build-64 build-multiarch build-universal build-intel build-arm64 debug release analyze format check-style deps docker-build docker-run help info status deps-status check
