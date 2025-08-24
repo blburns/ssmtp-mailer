@@ -271,13 +271,22 @@ private:
      * @return true if matches, false otherwise
      */
     bool matchesPattern(const std::string& str, const std::string& pattern) const;
+    
+    /**
+     * @brief Parse configuration section
+     * @param section_name Section name
+     * @param key_value_pairs Key-value pairs from section
+     * @return true if successful, false otherwise
+     */
+    bool parseSection(const std::string& section_name, 
+                     const std::map<std::string, std::string>& key_value_pairs);
 
 private:
     GlobalConfig global_config_;
     std::unordered_map<std::string, DomainConfig> domain_configs_;
     std::unordered_map<std::string, UserConfig> user_configs_;
     std::unordered_map<std::string, AddressMapping> address_mappings_;
-    std::string last_error_;
+    mutable std::string last_error_;
     bool is_valid_;
 };
 

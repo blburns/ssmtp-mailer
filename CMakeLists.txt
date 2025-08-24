@@ -17,6 +17,15 @@ elseif(UNIX AND NOT APPLE)
 elseif(WIN32)
     set(PLATFORM_WINDOWS TRUE)
     message(STATUS "Building for Windows")
+    
+    # Windows-specific settings
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+    
+    # Set Windows SDK version if available
+    if(DEFINED ENV{WINDOWS_SDK_VERSION})
+        set(CMAKE_SYSTEM_VERSION $ENV{WINDOWS_SDK_VERSION})
+    endif()
 endif()
 
 # Build options
@@ -79,6 +88,26 @@ elseif(PLATFORM_LINUX)
     # Linux compiler flags
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+    
+elseif(PLATFORM_WINDOWS)
+    # Windows specific libraries
+    set(PLATFORM_LIBRARIES 
+        ws2_32
+        iphlpapi
+        crypt32
+        advapi32
+        userenv
+        shell32
+    )
+    
+    # Windows compiler flags
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
+    
+    # Windows-specific definitions
+    add_definitions(-DWIN32_LEAN_AND_MEAN)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-DNOMINMAX)
 endif()
 
 # Include directories
@@ -121,6 +150,14 @@ if(PLATFORM_MACOS)
     set_target_properties(ssmtp-mailer-lib PROPERTIES
         MACOSX_RPATH "@loader_path"
     )
+elseif(PLATFORM_WINDOWS)
+    set_target_properties(ssmtp-mailer PROPERTIES
+        WIN32_EXECUTABLE TRUE
+    )
+    set_target_properties(ssmtp-mailer-lib PROPERTIES
+        PREFIX ""
+        SUFFIX ".dll"
+    )
 endif()
 
 # Link libraries
@@ -154,6 +191,9 @@ if(PLATFORM_MACOS)
 elseif(PLATFORM_LINUX)
     target_compile_definitions(ssmtp-mailer PRIVATE PLATFORM_LINUX=1)
     target_compile_definitions(ssmtp-mailer-lib PRIVATE PLATFORM_LINUX=1)
+elseif(PLATFORM_WINDOWS)
+    target_compile_definitions(ssmtp-mailer PRIVATE PLATFORM_WINDOWS=1)
+    target_compile_definitions(ssmtp-mailer-lib PRIVATE PLATFORM_WINDOWS=1)
 endif()
 
 # Install targets
@@ -169,6 +209,12 @@ install(DIRECTORY include/ DESTINATION include)
 if(PLATFORM_MACOS)
     # macOS install paths
     install(DIRECTORY config/ DESTINATION /usr/local/etc/ssmtp-mailer)
+elseif(PLATFORM_WINDOWS)
+    # Windows install paths
+    install(DIRECTORY config/ DESTINATION "C:/Program Files/ssmtp-mailer/config")
+    install(TARGETS ssmtp-mailer RUNTIME DESTINATION "C:/Program Files/ssmtp-mailer/bin")
+    install(TARGETS ssmtp-mailer-lib RUNTIME DESTINATION "C:/Program Files/ssmtp-mailer/bin")
+    install(TARGETS ssmtp-mailer-lib ARCHIVE DESTINATION "C:/Program Files/ssmtp-mailer/lib")
 else()
     # Linux install paths
     install(DIRECTORY config/ DESTINATION etc/ssmtp-mailer)
@@ -216,6 +262,28 @@ if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
     set(CPACK_PACKAGE_CONTACT "support@example.com")
+    
+    include(CPack)
+    
+# Windows package generation
+elseif(PLATFORM_WINDOWS AND BUILD_SHARED_LIBS)
+    # Create Windows installer
+    set(CPACK_GENERATOR "NSIS")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Windows")
+    set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
+    set(CPACK_PACKAGE_CONTACT "support@example.com")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "ssmtp-mailer")
+    
+    # NSIS specific settings
+    set(CPACK_NSIS_DISPLAY_NAME "ssmtp-mailer ${PROJECT_VERSION}")
+    set(CPACK_NSIS_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_NSIS_CONTACT "support@example.com")
+    set(CPACK_NSIS_URL "https://github.com/ssmtp-mailer/ssmtp-mailer")
+    set(CPACK_NSIS_ENABLE_DIRECTORY_PAGE ON)
+    set(CPACK_NSIS_MODIFY_PATH ON)
+    set(CPACK_NSIS_MENU_LINKS "https://github.com/ssmtp-mailer/ssmtp-mailer" "Documentation")
     
     include(CPack)
 endif()

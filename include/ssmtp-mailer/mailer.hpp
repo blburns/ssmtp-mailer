@@ -204,7 +204,7 @@ struct SMTPResult {
      * @param msg_id Message ID
      * @return Successful SMTP result
      */
-    static SMTPResult success(const std::string& msg_id = "");
+    static SMTPResult createSuccess(const std::string& msg_id = "");
     
     /**
      * @brief Create error result
@@ -212,7 +212,7 @@ struct SMTPResult {
      * @param error_code Error code
      * @return Error SMTP result
      */
-    static SMTPResult error(const std::string& error_msg, int error_code = 0);
+    static SMTPResult createError(const std::string& error_msg, int error_code = 0);
 };
 
 /**

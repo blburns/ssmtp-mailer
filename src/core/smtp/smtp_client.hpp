@@ -6,7 +6,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "core/config/config_manager.hpp"
-#include "utils/email.hpp"
+#include "ssmtp-mailer/mailer.hpp"
 
 namespace ssmtp_mailer {
 
@@ -235,6 +235,38 @@ private:
      * @return Number of bytes read
      */
     int readData(char* buffer, size_t max_length);
+
+private:
+    /**
+     * @brief Send email using SMTP protocol
+     * @param email Email object to send
+     * @return SMTPResult with operation status
+     */
+    SMTPResult sendEmail(const Email& email);
+    
+    /**
+     * @brief Authenticate using LOGIN method
+     * @param username Username for authentication
+     * @param password Password for authentication
+     * @return true if successful, false otherwise
+     */
+    bool authenticateLogin(const std::string& username, const std::string& password);
+    
+    /**
+     * @brief Authenticate using PLAIN method
+     * @param username Username for authentication
+     * @param password Password for authentication
+     * @return true if successful, false otherwise
+     */
+    bool authenticatePlain(const std::string& username, const std::string& password);
+    
+    /**
+     * @brief Authenticate using CRAM-MD5 method
+     * @param username Username for authentication
+     * @param password Password for authentication
+     * @return true if successful, false otherwise
+     */
+    bool authenticateCramMD5(const std::string& username, const std::string& password);
 
 private:
     const ConfigManager& config_;
