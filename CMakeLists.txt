@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(ssmtp-mailer VERSION 1.0.0 LANGUAGES CXX)
+project(ssmtp-mailer VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -8,9 +8,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Platform detection
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS deployment version" FORCE)
-    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for macOS" FORCE)
+    # Allow command line override of architectures
+    if(NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for macOS" FORCE)
+    endif()
     set(PLATFORM_MACOS TRUE)
-    message(STATUS "Building for macOS (Big Sur 11.0+)")
+    message(STATUS "Building for macOS (Big Sur 11.0+) with architectures: ${CMAKE_OSX_ARCHITECTURES}")
 elseif(UNIX AND NOT APPLE)
     set(PLATFORM_LINUX TRUE)
     message(STATUS "Building for Linux")

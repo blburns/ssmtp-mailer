@@ -223,15 +223,15 @@ int main(int argc, char* argv[]) {
                 }
                 
                 std::vector<std::string> queue_args(args.begin() + 2, args.end());
-                std::string from, to, subject, body;
+                std::string from, to, subject, body, html_body;
                 
-                if (!parseSendCommand(queue_args, from, to, subject, body, std::string())) {
+                if (!parseSendCommand(queue_args, from, to, subject, body, html_body)) {
                     std::cerr << "Error: Invalid queue add arguments" << std::endl;
                     return 1;
                 }
                 
                 ssmtp_mailer::Email email(from, to, subject, body);
-                mailer.enqueue(&email);
+                mailer.enqueue(email);
                 std::cout << "Email added to queue" << std::endl;
                 logger.info("Email queued from " + from + " to " + to);
                 return 0;

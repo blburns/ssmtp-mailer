@@ -83,7 +83,7 @@ bool Mailer::testConnection() {
 
 // Queue management methods
 void Mailer::enqueue(const Email& email, QueuePriority priority) {
-    pImpl->enqueue(&email, priority);
+    pImpl->enqueue(email, priority);
 }
 
 void Mailer::startQueue() {
@@ -172,20 +172,20 @@ SMTPResult Mailer::Impl::send(const Email& email) {
     if (!is_configured_) {
         last_error_ = "Mailer not properly configured";
         logger.error(last_error_);
-        return SMTPResult::error(last_error_);
+        return SMTPResult::createError(last_error_);
     }
     
     if (!email.isValid()) {
         last_error_ = "Invalid email configuration";
         logger.error(last_error_);
-        return SMTPResult::error(last_error_);
+        return SMTPResult::createError(last_error_);
     }
     
     // Validate email permissions
     if (!validateEmailPermissions(email)) {
         last_error_ = "Email permission validation failed";
         logger.error(last_error_);
-        return SMTPResult::error(last_error_);
+        return SMTPResult::createError(last_error_);
     }
     
     try {
@@ -202,7 +202,7 @@ SMTPResult Mailer::Impl::send(const Email& email) {
     } catch (const std::exception& e) {
         last_error_ = "Exception during email sending: " + std::string(e.what());
         logger.error(last_error_);
-        return SMTPResult::error(last_error_);
+        return SMTPResult::createError(last_error_);
     }
 }
 
@@ -271,13 +271,13 @@ bool Mailer::Impl::validateEmailPermissions(const Email& email) {
 }
 
 // Queue management implementations
-void Mailer::Impl::enqueue(const Email* email, QueuePriority priority) {
+void Mailer::Impl::enqueue(const Email& email, QueuePriority priority) {
     if (!email_queue_) {
         last_error_ = "Email queue not available";
         return;
     }
     
-    email_queue_->enqueue(email, priority);
+    email_queue_->enqueue(&email, priority);
 }
 
 void Mailer::Impl::startQueue() {

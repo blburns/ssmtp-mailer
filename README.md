@@ -105,19 +105,19 @@ make build-multiarch
 
 #### RPM (Red Hat/CentOS/Fedora)
 ```bash
-sudo rpm -i ssmtp-mailer-1.0.0-1.x86_64.rpm
+sudo rpm -i ssmtp-mailer-0.1.0-1.x86_64.rpm
 ```
 
 #### DEB (Debian/Ubuntu)
 ```bash
-sudo dpkg -i ssmtp-mailer_1.0.0_amd64.deb
+sudo dpkg -i ssmtp-mailer_0.1.0_amd64.deb
 ```
 
 #### DMG (macOS)
 ```bash
 # Mount the DMG and drag the application to Applications folder
 # Or install via command line:
-sudo installer -pkg /Volumes/ssmtp-mailer-1.0.0/ssmtp-mailer.pkg -target /
+sudo installer -pkg /Volumes/ssmtp-mailer-0.1.0/ssmtp-mailer.pkg -target /
 ```
 
 ## Configuration
