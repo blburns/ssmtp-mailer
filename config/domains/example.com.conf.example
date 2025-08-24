@@ -1,0 +1,35 @@
+# Domain Configuration for example.com
+# This file configures SMTP settings for the example.com domain
+
+[domain:example.com]
+# Enable/disable this domain
+enabled = true
+
+# SMTP server settings
+smtp_server = smtp.example.com
+smtp_port = 587
+
+# Authentication method (NONE, LOGIN, PLAIN, CRAM_MD5, OAUTH2, XOAUTH2)
+auth_method = LOGIN
+
+# Service account for sending emails
+service_account = mailer@example.com
+
+# Relay account (if different from service account)
+relay_account = mailer@example.com
+
+# Authentication credentials
+username = mailer@example.com
+password = your_password_here
+
+# OAuth2 token (if using OAuth2 authentication)
+# oauth2_token = your_oauth2_token_here
+
+# SSL/TLS settings
+use_ssl = false
+use_starttls = true
+
+# SSL certificate files (if using SSL)
+# ssl_cert_file = /path/to/cert.pem
+# ssl_key_file = /path/to/key.pem
+# ssl_ca_file = /path/to/ca.pem
