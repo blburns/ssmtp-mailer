@@ -2,13 +2,13 @@
 
 ## Overview
 
-This guide walks you through setting up the mail relay system for `dreamlikelabs.com` where emails sent to addresses on `mailer.dreamlikelabs.com` are automatically relayed to corresponding addresses on the main domain through Gmail SMTP.
+This guide walks you through setting up the mail relay system for `domain1.com` where emails sent to addresses on `mailer.domain1.com` are automatically relayed to corresponding addresses on the main domain through Gmail SMTP.
 
 ## Prerequisites
 
-- Domain: `dreamlikelabs.com`
-- Subdomain: `mailer.dreamlikelabs.com`
-- Gmail account: `mail-relay@dreamlikelabs.com`
+- Domain: `domain1.com`
+- Subdomain: `mailer.domain1.com`
+- Gmail account: `mail-relay@domain1.com`
 - Server/VPS to run the mailer application
 - DNS access to configure records
 
@@ -16,35 +16,35 @@ This guide walks you through setting up the mail relay system for `dreamlikelabs
 
 ### 1.1 Main Domain Records
 
-Add these records to your `dreamlikelabs.com` DNS:
+Add these records to your `domain1.com` DNS:
 
 ```dns
 # A record for your website
-dreamlikelabs.com.          IN A      YOUR_WEBSITE_IP
+domain1.com.          IN A      YOUR_WEBSITE_IP
 
 # MX record for receiving emails
-dreamlikelabs.com.          IN MX 10  mail.dreamlikelabs.com.
+domain1.com.          IN MX 10  mail.domain1.com.
 
 # SPF record for email authentication
-dreamlikelabs.com.          IN TXT    "v=spf1 include:_spf.google.com ~all"
+domain1.com.          IN TXT    "v=spf1 include:_spf.google.com ~all"
 
 # DMARC record for email policy
-_dmarc.dreamlikelabs.com.   IN TXT    "v=DMARC1; p=quarantine; rua=mailto:dmarc@dreamlikelabs.com"
+_dmarc.domain1.com.   IN TXT    "v=DMARC1; p=quarantine; rua=mailto:dmarc@domain1.com"
 ```
 
 ### 1.2 Mailer Subdomain Records
 
-Add these records for `mailer.dreamlikelabs.com`:
+Add these records for `mailer.domain1.com`:
 
 ```dns
 # A record pointing to your mailer server
-mailer.dreamlikelabs.com.   IN A      YOUR_MAILER_SERVER_IP
+mailer.domain1.com.   IN A      YOUR_MAILER_SERVER_IP
 
 # MX record for the mailer
-mailer.dreamlikelabs.com.   IN MX 10  mailer.dreamlikelabs.com.
+mailer.domain1.com.   IN MX 10  mailer.domain1.com.
 
 # SPF record for the mailer
-mailer.dreamlikelabs.com.   IN TXT    "v=spf1 ip4:YOUR_MAILER_SERVER_IP ~all"
+mailer.domain1.com.   IN TXT    "v=spf1 ip4:YOUR_MAILER_SERVER_IP ~all"
 ```
 
 ### 1.3 Reverse DNS (PTR)
@@ -52,7 +52,7 @@ mailer.dreamlikelabs.com.   IN TXT    "v=spf1 ip4:YOUR_MAILER_SERVER_IP ~all"
 Contact your hosting provider to set up reverse DNS:
 
 ```
-YOUR_MAILER_SERVER_IP      IN PTR    mailer.dreamlikelabs.com.
+YOUR_MAILER_SERVER_IP      IN PTR    mailer.domain1.com.
 ```
 
 ## Step 2: Gmail Setup
@@ -107,8 +107,8 @@ Create `/etc/ssmtp-mailer/ssmtp-mailer.conf`:
 
 ```ini
 [global]
-default_hostname = mailer.dreamlikelabs.com
-default_from = noreply@mailer.dreamlikelabs.com
+default_hostname = mailer.domain1.com
+default_from = noreply@mailer.domain1.com
 config_dir = /etc/ssmtp-mailer
 domains_dir = /etc/ssmtp-mailer/domains
 users_dir = /etc/ssmtp-mailer/users
@@ -125,47 +125,47 @@ rate_limit_per_minute = 100
 
 ### 4.2 Domain Configuration
 
-Create `/etc/ssmtp-mailer/domains/dreamlikelabs.com.conf`:
+Create `/etc/ssmtp-mailer/domains/domain1.com.conf`:
 
 ```ini
-[domain:dreamlikelabs.com]
+[domain:domain1.com]
 enabled = true
 smtp_server = smtp.gmail.com
 smtp_port = 587
 auth_method = LOGIN
-relay_account = mail-relay@dreamlikelabs.com
-username = mail-relay@dreamlikelabs.com
+relay_account = mail-relay@domain1.com
+username = mail-relay@domain1.com
 password = YOUR_GMAIL_APP_PASSWORD_HERE
 use_ssl = false
 use_starttls = true
 ```
 
-Create `/etc/ssmtp-mailer/domains/mailer.dreamlikelabs.com.conf`:
+Create `/etc/ssmtp-mailer/domains/mailer.domain1.com.conf`:
 
 ```ini
-[domain:mailer.dreamlikelabs.com]
+[domain:mailer.domain1.com]
 enabled = true
 smtp_server = localhost
 smtp_port = 25
 auth_method = NONE
-relay_account = mail-relay@mailer.dreamlikelabs.com
+relay_account = mail-relay@mailer.domain1.com
 use_ssl = false
 use_starttls = false
 ```
 
 ### 4.3 User Configuration
 
-Create `/etc/ssmtp-mailer/users/mail-relay@dreamlikelabs.com.conf`:
+Create `/etc/ssmtp-mailer/users/mail-relay@domain1.com.conf`:
 
 ```ini
-[user:mail-relay@dreamlikelabs.com]
+[user:mail-relay@domain1.com]
 enabled = true
-domain = dreamlikelabs.com
+domain = domain1.com
 can_send_from = true
 can_send_to = true
 template_address = false
-allowed_recipients = *@dreamlikelabs.com
-allowed_domains = dreamlikelabs.com
+allowed_recipients = *@domain1.com
+allowed_domains = domain1.com
 ```
 
 ### 4.4 Address Mappings
@@ -174,34 +174,34 @@ Create `/etc/ssmtp-mailer/mappings/relay-mappings.conf`:
 
 ```ini
 [mapping:contact-general]
-from_pattern = contact-general@mailer.dreamlikelabs.com
-to_pattern = contact-general@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-general@mailer.domain1.com
+to_pattern = contact-general@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 [mapping:contact-legal]
-from_pattern = contact-legal@mailer.dreamlikelabs.com
-to_pattern = contact-legal@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-legal@mailer.domain1.com
+to_pattern = contact-legal@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 [mapping:contact-privacy]
-from_pattern = contact-privacy@mailer.dreamlikelabs.com
-to_pattern = contact-privacy@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-privacy@mailer.domain1.com
+to_pattern = contact-privacy@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 [mapping:contact-support]
-from_pattern = contact-support@mailer.dreamlikelabs.com
-to_pattern = contact-support@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-support@mailer.domain1.com
+to_pattern = contact-support@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 [mapping:contact-sales]
-from_pattern = contact-sales@mailer.dreamlikelabs.com
-to_pattern = contact-sales@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-sales@mailer.domain1.com
+to_pattern = contact-sales@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 ```
 
 ## Step 5: Testing
@@ -234,7 +234,7 @@ ssmtp-mailer test
 ```bash
 # Send a test email
 ssmtp-mailer send \
-  --from contact-general@mailer.dreamlikelabs.com \
+  --from contact-general@mailer.domain1.com \
   --to test@example.com \
   --subject "Test Email from Relay" \
   --body "This is a test email sent through the relay system."
@@ -353,7 +353,7 @@ sudo journalctl -u ssmtp-mailer -f
 
 ```bash
 # Test DNS resolution
-nslookup mailer.dreamlikelabs.com
+nslookup mailer.domain1.com
 nslookup smtp.gmail.com
 
 # Test SMTP manually

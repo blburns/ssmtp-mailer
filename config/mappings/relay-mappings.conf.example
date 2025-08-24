@@ -3,43 +3,43 @@
 
 # General Contact
 [mapping:contact-general]
-from_pattern = contact-general@mailer.dreamlikelabs.com
-to_pattern = contact-general@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-general@mailer.domain1.com
+to_pattern = contact-general@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 # Legal Contact
 [mapping:contact-legal]
-from_pattern = contact-legal@mailer.dreamlikelabs.com
-to_pattern = contact-legal@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-legal@mailer.domain1.com
+to_pattern = contact-legal@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 # Privacy Contact
 [mapping:contact-privacy]
-from_pattern = contact-privacy@mailer.dreamlikelabs.com
-to_pattern = contact-privacy@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-privacy@mailer.domain1.com
+to_pattern = contact-privacy@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 # Support Contact
 [mapping:contact-support]
-from_pattern = contact-support@mailer.dreamlikelabs.com
-to_pattern = contact-support@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-support@mailer.domain1.com
+to_pattern = contact-support@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 # Sales Contact
 [mapping:contact-sales]
-from_pattern = contact-sales@mailer.dreamlikelabs.com
-to_pattern = contact-sales@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-sales@mailer.domain1.com
+to_pattern = contact-sales@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 # Wildcard mapping for any other addresses
 [mapping:catch-all]
-from_pattern = *@mailer.dreamlikelabs.com
-to_pattern = noreply@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
-allowed_recipients = noreply@dreamlikelabs.com
+from_pattern = *@mailer.domain1.com
+to_pattern = noreply@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
+allowed_recipients = noreply@domain1.com

@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
                 }
                 
                 ssmtp_mailer::Email email(from, to, subject, body);
-                mailer.enqueue(email);
+                mailer.enqueue(&email);
                 std::cout << "Email added to queue" << std::endl;
                 logger.info("Email queued from " + from + " to " + to);
                 return 0;
@@ -240,9 +240,11 @@ int main(int argc, char* argv[]) {
                 auto pending = mailer.getPendingEmails();
                 std::cout << "Pending emails: " << pending.size() << std::endl;
                 for (const auto& queued : pending) {
-                    std::string recipient = queued.email.getAllRecipients().empty() ? "none" : queued.email.getAllRecipients()[0];
-                    std::cout << "  - " << queued.email.from << " -> " << recipient 
-                              << " (Priority: " << static_cast<int>(queued.priority) << ")" << std::endl;
+                    if (queued.email) {
+                        std::string recipient = queued.email->getAllRecipients().empty() ? "none" : queued.email->getAllRecipients()[0];
+                        std::cout << "  - " << queued.email->from << " -> " << recipient 
+                                  << " (Priority: " << static_cast<int>(queued.priority) << ")" << std::endl;
+                    }
                 }
                 return 0;
                 
@@ -250,9 +252,11 @@ int main(int argc, char* argv[]) {
                 auto failed = mailer.getFailedEmails();
                 std::cout << "Failed emails: " << failed.size() << std::endl;
                 for (const auto& queued : failed) {
-                    std::string recipient = queued.email.getAllRecipients().empty() ? "none" : queued.email.getAllRecipients()[0];
-                    std::cout << "  - " << queued.email.from << " -> " << recipient 
-                              << " (Error: " << queued.last_error << ")" << std::endl;
+                    if (queued.email) {
+                        std::string recipient = queued.email->getAllRecipients().empty() ? "none" : queued.email->getAllRecipients()[0];
+                        std::cout << "  - " << queued.email->from << " -> " << recipient 
+                                  << " (Error: " << queued.last_error << ")" << std::endl;
+                    }
                 }
                 return 0;
                 

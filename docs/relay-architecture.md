@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the mail relay architecture for `dreamlikelabs.com` where a local mailer server acts as a relay, forwarding emails from local aliases to the main domain through Gmail SMTP.
+This document describes the mail relay architecture for `domain1.com` where a local mailer server acts as a relay, forwarding emails from local aliases to the main domain through Gmail SMTP.
 
 ## Architecture Diagram
 
@@ -14,34 +14,34 @@ This document describes the mail relay architecture for `dreamlikelabs.com` wher
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              DNS Resolution                                     │
-│  contact-general@mailer.dreamlikelabs.com                      │
-│  contact-legal@mailer.dreamlikelabs.com                        │
-│  contact-privacy@mailer.dreamlikelabs.com                      │
-│  contact-support@mailer.dreamlikelabs.com                      │
-│  contact-sales@mailer.dreamlikelabs.com                        │
+│  contact-general@mailer.domain1.com                      │
+│  contact-legal@mailer.domain1.com                        │
+│  contact-privacy@mailer.domain1.com                      │
+│  contact-support@mailer.domain1.com                      │
+│  contact-sales@mailer.domain1.com                        │
 └─────────────────────┬───────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              Local Mailer Server                                │
-│              mailer.dreamlikelabs.com                           │
+│              mailer.domain1.com                           │
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │              Address Mapping                             │   │
-│  │  contact-general@mailer.dreamlikelabs.com               │   │
-│  │  └─→ contact-general@dreamlikelabs.com                 │   │
+│  │  contact-general@mailer.domain1.com               │   │
+│  │  └─→ contact-general@domain1.com                 │   │
 │  │                                                         │   │
-│  │  contact-legal@mailer.dreamlikelabs.com                 │   │
-│  │  └─→ contact-legal@dreamlikelabs.com                   │   │
+│  │  contact-legal@mailer.domain1.com                 │   │
+│  │  └─→ contact-legal@domain1.com                   │   │
 │  │                                                         │   │
-│  │  contact-privacy@mailer.dreamlikelabs.com               │   │
-│  │  └─→ contact-privacy@dreamlikelabs.com                 │   │
+│  │  contact-privacy@mailer.domain1.com               │   │
+│  │  └─→ contact-privacy@domain1.com                 │   │
 │  │                                                         │   │
-│  │  contact-support@mailer.dreamlikelabs.com               │   │
-│  │  └─→ contact-support@dreamlikelabs.com                 │   │
+│  │  contact-support@mailer.domain1.com               │   │
+│  │  └─→ contact-support@domain1.com                 │   │
 │  │                                                         │   │
-│  │  contact-sales@mailer.dreamlikelabs.com                 │   │
-│  │  └─→ contact-sales@dreamlikelabs.com                   │   │
+│  │  contact-sales@mailer.domain1.com                 │   │
+│  │  └─→ contact-sales@domain1.com                   │   │
 │  └─────────────────────────────────────────────────────────┘   │
 └─────────────────────┬───────────────────────────────────────────┘
                       │
@@ -49,13 +49,13 @@ This document describes the mail relay architecture for `dreamlikelabs.com` wher
 ┌─────────────────────────────────────────────────────────────────┐
 │              Gmail SMTP Relay                                   │
 │              smtp.gmail.com:587                                │
-│              (via mail-relay@dreamlikelabs.com)                │
+│              (via mail-relay@domain1.com)                │
 └─────────────────────┬───────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              Final Recipients                                   │
-│              @dreamlikelabs.com                                │
+│              @domain1.com                                │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -63,50 +63,50 @@ This document describes the mail relay architecture for `dreamlikelabs.com` wher
 
 ### Required DNS Records
 
-#### 1. Main Domain Records (dreamlikelabs.com)
+#### 1. Main Domain Records (domain1.com)
 
 ```dns
 # A record for the main website
-dreamlikelabs.com.          IN A      YOUR_WEBSITE_IP
+domain1.com.          IN A      YOUR_WEBSITE_IP
 
 # MX record for receiving emails (if needed)
-dreamlikelabs.com.          IN MX 10  mail.dreamlikelabs.com.
+domain1.com.          IN MX 10  mail.domain1.com.
 
 # SPF record for email authentication
-dreamlikelabs.com.          IN TXT    "v=spf1 include:_spf.google.com ~all"
+domain1.com.          IN TXT    "v=spf1 include:_spf.google.com ~all"
 
 # DKIM record (if using Gmail with custom domain)
-google._domainkey.dreamlikelabs.com. IN TXT "v=DKIM1; k=rsa; p=YOUR_DKIM_KEY"
+google._domainkey.domain1.com. IN TXT "v=DKIM1; k=rsa; p=YOUR_DKIM_KEY"
 
 # DMARC record for email policy
-_dmarc.dreamlikelabs.com.   IN TXT    "v=DMARC1; p=quarantine; rua=mailto:dmarc@dreamlikelabs.com"
+_dmarc.domain1.com.   IN TXT    "v=DMARC1; p=quarantine; rua=mailto:dmarc@domain1.com"
 ```
 
-#### 2. Mailer Subdomain Records (mailer.dreamlikelabs.com)
+#### 2. Mailer Subdomain Records (mailer.domain1.com)
 
 ```dns
 # A record pointing to your mailer server
-mailer.dreamlikelabs.com.   IN A      YOUR_MAILER_SERVER_IP
+mailer.domain1.com.   IN A      YOUR_MAILER_SERVER_IP
 
 # MX record for the mailer subdomain
-mailer.dreamlikelabs.com.   IN MX 10  mailer.dreamlikelabs.com.
+mailer.domain1.com.   IN MX 10  mailer.domain1.com.
 
 # SPF record for the mailer subdomain
-mailer.dreamlikelabs.com.   IN TXT    "v=spf1 ip4:YOUR_MAILER_SERVER_IP ~all"
+mailer.domain1.com.   IN TXT    "v=spf1 ip4:YOUR_MAILER_SERVER_IP ~all"
 
 # Reverse DNS (PTR) record (important for email deliverability)
-YOUR_MAILER_SERVER_IP      IN PTR    mailer.dreamlikelabs.com.
+YOUR_MAILER_SERVER_IP      IN PTR    mailer.domain1.com.
 ```
 
 #### 3. SMTP Relay Records
 
 ```dns
 # CNAME record for SMTP relay (optional, for convenience)
-smtp.dreamlikelabs.com.     IN CNAME  smtp.gmail.com.
+smtp.domain1.com.     IN CNAME  smtp.gmail.com.
 
 # Alternative: Direct A record to Gmail (more reliable)
-smtp.dreamlikelabs.com.     IN A      173.194.76.108
-smtp.dreamlikelabs.com.     IN A      173.194.76.109
+smtp.domain1.com.     IN A      173.194.76.108
+smtp.domain1.com.     IN A      173.194.76.109
 ```
 
 ### DNS Provider Setup
@@ -136,10 +136,10 @@ smtp.dreamlikelabs.com.     IN A      173.194.76.109
 ```ini
 [global]
 # Default hostname for SMTP connections
-default_hostname = mailer.dreamlikelabs.com
+default_hostname = mailer.domain1.com
 
 # Default from address when none specified
-default_from = noreply@mailer.dreamlikelabs.com
+default_from = noreply@mailer.domain1.com
 
 # Configuration directory paths
 config_dir = /etc/ssmtp-mailer
@@ -163,30 +163,30 @@ enable_rate_limiting = true
 rate_limit_per_minute = 100
 ```
 
-### 2. Domain Configuration (`domains/dreamlikelabs.com.conf`)
+### 2. Domain Configuration (`domains/domain1.com.conf`)
 
 ```ini
-[domain:dreamlikelabs.com]
+[domain:domain1.com]
 enabled = true
 smtp_server = smtp.gmail.com
 smtp_port = 587
 auth_method = LOGIN
-relay_account = mail-relay@dreamlikelabs.com
-username = mail-relay@dreamlikelabs.com
+relay_account = mail-relay@domain1.com
+username = mail-relay@domain1.com
 password = your_gmail_app_password_here
 use_ssl = false
 use_starttls = true
 ```
 
-### 3. Local Domain Configuration (`domains/mailer.dreamlikelabs.com.conf`)
+### 3. Local Domain Configuration (`domains/mailer.domain1.com.conf`)
 
 ```ini
-[domain:mailer.dreamlikelabs.com]
+[domain:mailer.domain1.com]
 enabled = true
 smtp_server = localhost
 smtp_port = 25
 auth_method = NONE
-relay_account = mail-relay@mailer.dreamlikelabs.com
+relay_account = mail-relay@mailer.domain1.com
 use_ssl = false
 use_starttls = false
 ```
@@ -195,46 +195,46 @@ use_starttls = false
 
 ```ini
 [mapping:contact-general]
-from_pattern = contact-general@mailer.dreamlikelabs.com
-to_pattern = contact-general@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-general@mailer.domain1.com
+to_pattern = contact-general@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 [mapping:contact-legal]
-from_pattern = contact-legal@mailer.dreamlikelabs.com
-to_pattern = contact-legal@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-legal@mailer.domain1.com
+to_pattern = contact-legal@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 [mapping:contact-privacy]
-from_pattern = contact-privacy@mailer.dreamlikelabs.com
-to_pattern = contact-privacy@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-privacy@mailer.domain1.com
+to_pattern = contact-privacy@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 [mapping:contact-support]
-from_pattern = contact-support@mailer.dreamlikelabs.com
-to_pattern = contact-support@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-support@mailer.domain1.com
+to_pattern = contact-support@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 
 [mapping:contact-sales]
-from_pattern = contact-sales@mailer.dreamlikelabs.com
-to_pattern = contact-sales@dreamlikelabs.com
-smtp_account = mail-relay@dreamlikelabs.com
-domain = dreamlikelabs.com
+from_pattern = contact-sales@mailer.domain1.com
+to_pattern = contact-sales@domain1.com
+smtp_account = mail-relay@domain1.com
+domain = domain1.com
 ```
 
-### 5. User Configuration (`users/mail-relay@dreamlikelabs.com.conf`)
+### 5. User Configuration (`users/mail-relay@domain1.com.conf`)
 
 ```ini
-[user:mail-relay@dreamlikelabs.com]
+[user:mail-relay@domain1.com]
 enabled = true
-domain = mailer.dreamlikelabs.com
+domain = mailer.domain1.com
 can_send_from = true
 can_send_to = true
 template_address = false
-allowed_domains = dreamlikelabs.com
+allowed_domains = domain1.com
 ```
 
 ## Gmail Setup
@@ -263,16 +263,16 @@ allowed_domains = dreamlikelabs.com
 ### 1. Test DNS Resolution
 ```bash
 # Test A records
-nslookup mailer.dreamlikelabs.com
-nslookup smtp.dreamlikelabs.com
+nslookup mailer.domain1.com
+nslookup smtp.domain1.com
 
 # Test MX records
-nslookup -type=mx mailer.dreamlikelabs.com
-nslookup -type=mx dreamlikelabs.com
+nslookup -type=mx mailer.domain1.com
+nslookup -type=mx domain1.com
 
 # Test SPF records
-nslookup -type=txt dreamlikelabs.com
-nslookup -type=txt mailer.dreamlikelabs.com
+nslookup -type=txt domain1.com
+nslookup -type=txt mailer.domain1.com
 ```
 
 ### 2. Test SMTP Connection
@@ -281,7 +281,7 @@ nslookup -type=txt mailer.dreamlikelabs.com
 telnet smtp.gmail.com 587
 
 # Test local mailer
-telnet mailer.dreamlikelabs.com 25
+telnet mailer.domain1.com 25
 ```
 
 ### 3. Test Email Relay
@@ -291,7 +291,7 @@ ssmtp-mailer test
 
 # Send a test email
 ssmtp-mailer send \
-  --from contact-general@mailer.dreamlikelabs.com \
+  --from contact-general@mailer.domain1.com \
   --to test@example.com \
   --subject "Test Email" \
   --body "This is a test email from the relay system"
@@ -380,8 +380,8 @@ ssmtp-mailer test
 tail -f /var/log/ssmtp-mailer.log
 
 # Check DNS
-dig mailer.dreamlikelabs.com
-dig smtp.dreamlikelabs.com
+dig mailer.domain1.com
+dig smtp.domain1.com
 
 # Test SMTP manually
 telnet smtp.gmail.com 587

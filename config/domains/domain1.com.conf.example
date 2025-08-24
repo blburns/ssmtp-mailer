@@ -1,7 +1,7 @@
-# Domain Configuration for dreamlikelabs.com
-# This domain uses Gmail SMTP (smtp.dreamlikelabs.com CNAME -> smtp.gmail.com)
+# Domain Configuration for domain1.com
+# This domain uses Gmail SMTP (smtp.domain1.com CNAME -> smtp.gmail.com)
 
-[domain:dreamlikelabs.com]
+[domain:domain1.com]
 # Enable/disable this domain
 enabled = true
 
@@ -13,10 +13,10 @@ smtp_port = 587
 auth_method = LOGIN
 
 # Remote relay account (Gmail account)
-relay_account = mail-relay@dreamlikelabs.com
+relay_account = mail-relay@domain1.com
 
 # Gmail authentication credentials
-username = mail-relay@dreamlikelabs.com
+username = mail-relay@domain1.com
 password = your_gmail_app_password_here
 
 # Note: For Gmail, you need to use an App Password, not your regular password

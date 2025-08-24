@@ -1,12 +1,12 @@
 # User Configuration for Mail Relay User
 # This user handles relay operations from local addresses to remote addresses
 
-[user:mail-relay@dreamlikelabs.com]
+[user:mail-relay@domain1.com]
 # Enable/disable this user
 enabled = true
 
 # Domain this user belongs to
-domain = dreamlikelabs.com
+domain = domain1.com
 
 # Permissions
 can_send_from = true
@@ -18,11 +18,11 @@ template_address = false
 # Allowed email types (all types allowed for relay)
 # allowed_types = notification, marketing, system
 
-# Allowed recipients (all dreamlikelabs.com addresses allowed)
-allowed_recipients = *@dreamlikelabs.com
+# Allowed recipients (all domain1.com addresses allowed)
+allowed_recipients = *@domain1.com
 
 # Allowed domains to send to (only the main domain)
-allowed_domains = dreamlikelabs.com
+allowed_domains = domain1.com
 
 # Rate limiting for relay operations
 # This user can send more emails than regular users

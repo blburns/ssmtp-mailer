@@ -83,7 +83,7 @@ bool Mailer::testConnection() {
 
 // Queue management methods
 void Mailer::enqueue(const Email& email, QueuePriority priority) {
-    pImpl->enqueue(email, priority);
+    pImpl->enqueue(&email, priority);
 }
 
 void Mailer::startQueue() {
@@ -128,8 +128,8 @@ Mailer::Impl::Impl(const std::string& config_file)
             email_queue_ = std::make_unique<EmailQueue>();
             
             // Set up the queue callback
-            email_queue_->setSendCallback([this](const Email& email) -> SMTPResult {
-                return sendEmailDirect(email);
+            email_queue_->setSendCallback([this](const Email* email) -> SMTPResult {
+                return sendEmailDirect(*email);
             });
             
             is_configured_ = true;
@@ -271,7 +271,7 @@ bool Mailer::Impl::validateEmailPermissions(const Email& email) {
 }
 
 // Queue management implementations
-void Mailer::Impl::enqueue(const Email& email, QueuePriority priority) {
+void Mailer::Impl::enqueue(const Email* email, QueuePriority priority) {
     if (!email_queue_) {
         last_error_ = "Email queue not available";
         return;

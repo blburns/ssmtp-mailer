@@ -4,14 +4,7 @@
 #include <vector>
 #include <memory>
 
-// Forward declarations
-namespace ssmtp_mailer {
-    enum class QueuePriority;
-    struct QueuedEmail;
-}
-
-// Include queue types for complete definitions
-#include "core/queue/email_queue.hpp"
+#include "ssmtp-mailer/queue_types.hpp"
 
 namespace ssmtp_mailer {
 
