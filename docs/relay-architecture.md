@@ -8,54 +8,54 @@ This document describes the mail relay architecture for `domain1.com` where a lo
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Internet Users                                │
+│                    Internet Users                               │
 └─────────────────────┬───────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              DNS Resolution                                     │
-│  contact-general@mailer.domain1.com                      │
-│  contact-legal@mailer.domain1.com                        │
-│  contact-privacy@mailer.domain1.com                      │
-│  contact-support@mailer.domain1.com                      │
-│  contact-sales@mailer.domain1.com                        │
+│  contact-general@mailer.domain1.com                             │
+│  contact-legal@mailer.domain1.com                               │
+│  contact-privacy@mailer.domain1.com                             │
+│  contact-support@mailer.domain1.com                             │
+│  contact-sales@mailer.domain1.com                               │
 └─────────────────────┬───────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              Local Mailer Server                                │
-│              mailer.domain1.com                           │
+│              mailer.domain1.com                                 │
 │                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │              Address Mapping                             │   │
-│  │  contact-general@mailer.domain1.com               │   │
-│  │  └─→ contact-general@domain1.com                 │   │
-│  │                                                         │   │
-│  │  contact-legal@mailer.domain1.com                 │   │
-│  │  └─→ contact-legal@domain1.com                   │   │
-│  │                                                         │   │
-│  │  contact-privacy@mailer.domain1.com               │   │
-│  │  └─→ contact-privacy@domain1.com                 │   │
-│  │                                                         │   │
-│  │  contact-support@mailer.domain1.com               │   │
-│  │  └─→ contact-support@domain1.com                 │   │
-│  │                                                         │   │
-│  │  contact-sales@mailer.domain1.com                 │   │
-│  │  └─→ contact-sales@domain1.com                   │   │
-│  └─────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │              Address Mapping                            │    │
+│  │  contact-general@mailer.domain1.com                     │    │
+│  │  └─→ contact-general@domain1.com                        │    │
+│  │                                                         │    │
+│  │  contact-legal@mailer.domain1.com                       │    │
+│  │  └─→ contact-legal@domain1.com                          │    │
+│  │                                                         │    │
+│  │  contact-privacy@mailer.domain1.com                     │    │
+│  │  └─→ contact-privacy@domain1.com                        │    │
+│  │                                                         │    │
+│  │  contact-support@mailer.domain1.com                     │    │
+│  │  └─→ contact-support@domain1.com                        │    │
+│  │                                                         │    │
+│  │  contact-sales@mailer.domain1.com                       │    │
+│  │  └─→ contact-sales@domain1.com                          │    │
+│  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────┬───────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              Gmail SMTP Relay                                   │
-│              smtp.gmail.com:587                                │
-│              (via mail-relay@domain1.com)                │
+│              smtp.gmail.com:587                                 │
+│              (via mail-relay@domain1.com)                       │
 └─────────────────────┬───────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              Final Recipients                                   │
-│              @domain1.com                                │
+│              @domain1.com                                       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
