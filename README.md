@@ -221,7 +221,7 @@ ssmtp-mailer --from "contact-legal@dreamlikenetworks.com" \
              --html-body "<h1>Legal Notice</h1><p>Important information...</p>"
 
 # Send to multiple recipients
-ssmtp-mailer --from "noreply@blburns.com" \
+ssmtp-mailer --from "noreply@domain1.com" \
              --to "user1@example.com,user2@example.com" \
              --subject "Newsletter" \
              --body "Monthly newsletter content..."
