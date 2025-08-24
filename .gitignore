@@ -4,6 +4,9 @@ dist/
 out/
 cmake-build-*/
 
+# Source code (allow all source files)
+# src/
+
 # CMake generated files
 CMakeCache.txt
 CMakeFiles/
