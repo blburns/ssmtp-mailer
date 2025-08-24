@@ -85,12 +85,15 @@ endif()
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
-# Source files
+# Source files (exclude tests)
 file(GLOB_RECURSE SOURCES 
     "src/*.cpp"
     "src/core/*.cpp"
     "src/utils/*.cpp"
 )
+
+# Filter out test files from main sources
+list(FILTER SOURCES EXCLUDE REGEX ".*test.*\\.cpp$")
 
 # Header files
 file(GLOB_RECURSE HEADERS 
