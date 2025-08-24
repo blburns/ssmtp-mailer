@@ -6,13 +6,24 @@
 
 ssmtp-mailer is a lightweight, high-performance mailer application designed for Linux, macOS, and BSD platforms. It serves as a smart host MTA that can handle multiple domain-specific SMTP relay accounts, making it ideal for web applications that need to send mail from different domains using various service accounts.
 
+## Documentation
+
+- [DNS Setup Guide](docs/dns-setup.md)
+- [Linux Build Guide](docs/linux-build.md)
+- [macOS Build Guide](docs/macos-build.md)
+- [Windows Build Guide](docs/windows-build.md)
+- [Relay Architecture](docs/relay-architecture.md)
+- [Relay Setup Guide](docs/relay-setup-guide.md)
+- [SSL Setup with Certbot](docs/ssl-setup-with-certbot.md)
+- [SSL Quick Reference](docs/ssl-quick-reference.md)
+
 ## Key Features
 
 - **Multi-Domain Support**: Handle multiple domains with different SMTP relay accounts
 - **Flexible Authentication**: Support for OAuth2, username/password, and API key authentication
 - **Smart Routing**: Map from-addresses to appropriate SMTP accounts based on domain
 - **Template Addresses**: Support for dynamic address patterns like `contact-{type}@domain.com`
-- **SSL/TLS Support**: Secure SMTP connections with OpenSSL
+- **SSL/TLS Support**: Secure SMTP connections with OpenSSL and automatic certificate management via Certbot
 - **Configuration Management**: Modular configuration system with `/etc/ssmtp-mailer/conf.d/` support
 - **Cross-Platform**: Build for Linux, macOS (Big Sur 11.0+), and BSD platforms
 - **Universal Binary Support**: Native support for both Intel and Apple Silicon Macs
