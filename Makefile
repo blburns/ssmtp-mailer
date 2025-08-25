@@ -430,7 +430,7 @@ help:
 	@echo "  all              - Build the project (default target)"
 	@echo "  build            - Build using CMake with default settings"
 	@echo "  build-script     - Build using platform-specific build script ⭐ RECOMMENDED"
-	@echo "                    macOS: auto-detects architecture, Linux: native build"
+	@echo "                    macOS: 🚀 SMART auto-detects architecture, Linux: native build"
 	@echo "  build-debian     - Build using Debian/Ubuntu script"
 	@echo "  build-redhat     - Build using Red Hat script"
 	@echo "  build-freebsd    - Build using FreeBSD script"
@@ -508,14 +508,16 @@ endif
 ifeq ($(PLATFORM),macos)
 	@echo "  🍎 macOS Quick Start:"
 	@echo "    1. make deps                    # Install dependencies via Homebrew"
-	@echo "    2. make build-script            # 🚀 SMART: Auto-detect architecture and build"
+	@echo "    2. make build-script            # 🚀 SMART: Auto-detects your Mac's architecture!"
 	@echo "    3. make package-dmg             # Create distribution package"
 	@echo "    4. sudo make install            # Install to system"
 	@echo ""
 	@echo "  🔍 macOS Architecture Detection:"
+	@echo "    🚀 SMART: Automatically detects your Mac's architecture by default!"
 	@echo "    • Intel Macs → x86_64 binary (smaller, faster)"
 	@echo "    • Apple Silicon → arm64 binary (native performance)"
 	@echo "    • Universal → Both architectures (larger, compatible with all Macs)"
+	@echo "    • Override: use 'make build-intel' or 'make build-arm64' for specific builds"
 else
 	@echo "  🐧 Linux Quick Start:"
 	@echo "    1. make deps                    # Install dependencies via apt/yum/dnf"
@@ -541,7 +543,7 @@ endif
 	@echo ""
 	@echo "  # Build and create package (macOS)"
 ifeq ($(PLATFORM),macos)
-	@echo "  make build-script && make package-dmg          # Auto-detect architecture"
+	@echo "  make build-script && make package-dmg          # 🚀 SMART: Auto-detect architecture"
 	@echo "  make build-universal && make package-dmg       # Force universal binary"
 else
 	@echo "  make build-64 && make package"

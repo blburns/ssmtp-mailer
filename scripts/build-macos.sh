@@ -53,7 +53,8 @@ show_usage() {
 Usage: $0 [OPTIONS]
 
 Build ssmtp-mailer for macOS Big Sur 11.0+ and later.
-By default, automatically detects your system architecture for optimal builds.
+🚀 SMART: Automatically detects your system architecture by default for optimal builds.
+Use -a/--arch to override with specific architecture if needed.
 
 OPTIONS:
     -h, --help              Show this help message
@@ -71,13 +72,12 @@ OPTIONS:
     --package               Build DMG package after successful build
 
 EXAMPLES:
-    $0                        # Build release version (auto-detect architecture)
-    $0 -d                    # Build debug version
-    $0 -a auto               # Auto-detect architecture (default)
-    $0 -a universal          # Build universal binary (Intel + Apple Silicon)
-    $0 -a intel              # Build for Intel Macs only
-    $0 -a arm64              # Build for Apple Silicon Macs only
-    $0 -c -r                 # Clean build and build release version
+    $0                        # 🚀 SMART: Auto-detect architecture (recommended)
+    $0 -d                    # Debug build with auto-detected architecture
+    $0 -a universal          # Force universal binary (Intel + Apple Silicon)
+    $0 -a intel              # Force Intel-only build (x86_64)
+    $0 -a arm64              # Force Apple Silicon-only build (arm64)
+    $0 -c -r                 # Clean build with auto-detected architecture
     $0 --package             # Build and create DMG package
 
 ARCHITECTURE OPTIONS:
@@ -135,6 +135,13 @@ detect_system_architecture() {
             exit 1
             ;;
     esac
+}
+
+# Function to auto-detect architecture if not specified
+auto_detect_architecture() {
+    if [ "$BUILD_ARCH" = "auto" ]; then
+        detect_system_architecture
+    fi
 }
 
 # Function to check dependencies
@@ -423,6 +430,9 @@ main() {
     
     # Check dependencies
     check_dependencies
+    
+    # Auto-detect architecture if not specified
+    auto_detect_architecture
     
     # Set build architecture
     set_build_architecture
