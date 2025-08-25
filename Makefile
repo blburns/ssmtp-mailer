@@ -98,22 +98,127 @@ endif
 package-script:
 ifeq ($(PLATFORM),macos)
 	@echo "Building macOS package with build script..."
-	./scripts/build-macos.sh --package
+	@mkdir -p $(DIST_DIR)
+	./scripts/build-macos.sh
+	@echo "macOS package created successfully!"
 else ifeq ($(PLATFORM),linux)
-	@echo "Detecting Linux distribution for package building..."
-	@if [ -f /etc/debian_version ] || [ -f /etc/os-release ] && grep -q "debian\|ubuntu" /etc/os-release; then \
-		echo "Building DEB package with Debian/Ubuntu script..."; \
-		./scripts/build-debian.sh --package; \
-	elif [ -f /etc/redhat-release ] || [ -f /etc/os-release ] && grep -q "rhel\|centos\|fedora" /etc/os-release; then \
-		echo "Building RPM package with Red Hat script..."; \
-		./scripts/build-redhat.sh --package; \
-	else \
-		echo "Unknown Linux distribution, using generic package build..."; \
-		$(MAKE) package; \
-	fi
+	@echo "Building Linux package with build script..."
+	@mkdir -p $(DIST_DIR)
+	./scripts/build-linux.sh
+	@echo "Linux package created successfully!"
 else
-	@echo "Platform $(PLATFORM) not supported by build scripts"
+	@echo "Package script not available for this platform"
 endif
+
+# Package all platforms (creates organized release structure)
+package-all: clean
+	@echo "Building packages for all supported platforms..."
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)/linux
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)/macos
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)/windows
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)/source
+	@echo "Created release directory structure: $(DIST_DIR)/releases/v$(VERSION)/"
+	
+	@echo "Building Linux packages..."
+	@if [ "$(PLATFORM)" = "linux" ]; then \
+		$(MAKE) package-linux-release; \
+	else \
+		echo "Skipping Linux packages (not on Linux platform)"; \
+	fi
+	
+	@echo "Building macOS packages..."
+	@if [ "$(PLATFORM)" = "macos" ]; then \
+		$(MAKE) package-macos-release; \
+	else \
+		echo "Skipping macOS packages (not on macOS platform)"; \
+	fi
+	
+	@echo "Building source packages..."
+	$(MAKE) package-source-release
+	
+	@echo "Creating release summary..."
+	@echo "Release v$(VERSION) packages created in: $(DIST_DIR)/releases/v$(VERSION)/"
+	@echo "Contents:"
+	@ls -la $(DIST_DIR)/releases/v$(VERSION)/*/ 2>/dev/null || echo "No packages created yet"
+
+# Package Linux release (organized)
+package-linux-release: build
+	@echo "Building organized Linux release packages..."
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)/linux
+	cd $(BUILD_DIR) && cpack -G DEB
+	cd $(BUILD_DIR) && cpack -G RPM
+	cd $(BUILD_DIR) && cpack -G TGZ
+	@if ls $(BUILD_DIR)/$(PROJECT_NAME)-$(VERSION)-*.deb 1> /dev/null 2>&1; then \
+		mv $(BUILD_DIR)/$(PROJECT_NAME)-$(VERSION)-*.deb $(DIST_DIR)/releases/v$(VERSION)/linux/; \
+		echo "DEB packages moved to: $(DIST_DIR)/releases/v$(VERSION)/linux/"; \
+	fi
+	@if ls $(BUILD_DIR)/$(PROJECT_NAME)-$(VERSION)-*.rpm 1> /dev/null 2>&1; then \
+		mv $(BUILD_DIR)/$(PROJECT_NAME)-$(VERSION)-*.rpm $(DIST_DIR)/releases/v$(VERSION)/linux/; \
+		echo "RPM packages moved to: $(DIST_DIR)/releases/v$(VERSION)/linux/"; \
+	fi
+	@if ls $(BUILD_DIR)/$(PROJECT_NAME)-$(VERSION)-*.tar.gz 1> /dev/null 2>&1; then \
+		mv $(BUILD_DIR)/$(PROJECT_NAME)-$(VERSION)-*.tar.gz $(DIST_DIR)/releases/v$(VERSION)/linux/; \
+		echo "TGZ packages moved to: $(DIST_DIR)/releases/v$(VERSION)/linux/"; \
+	fi
+
+# Package macOS release (organized)
+package-macos-release:
+	@echo "Building organized macOS release packages..."
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)/macos
+	./scripts/build-macos.sh
+	@if ls $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION)-*.dmg 1> /dev/null 2>&1; then \
+		mv $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION)-*.dmg $(DIST_DIR)/releases/v$(VERSION)/macos/; \
+		echo "DMG packages moved to: $(DIST_DIR)/releases/v$(VERSION)/macos/"; \
+	fi
+	@if ls $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION)-*.pkg 1> /dev/null 2>&1; then \
+		mv $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION)-*.pkg $(DIST_DIR)/releases/v$(VERSION)/macos/; \
+		echo "PKG packages moved to: $(DIST_DIR)/releases/v$(VERSION)/macos/"; \
+	fi
+
+# Package source release (organized)
+package-source-release:
+	@echo "Creating organized source release..."
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)/source
+	@if [ -d .git ]; then \
+		git archive --format=tar.gz --prefix=$(PROJECT_NAME)-$(VERSION)/ HEAD > $(DIST_DIR)/releases/v$(VERSION)/source/$(PROJECT_NAME)-$(VERSION)-source.tar.gz; \
+		echo "Source archive created: $(DIST_DIR)/releases/v$(VERSION)/source/$(PROJECT_NAME)-$(VERSION)-source.tar.gz"; \
+	else \
+		echo "Not a git repository, skipping source archive"; \
+	fi
+
+# Create release notes
+release-notes:
+	@echo "Creating release notes for v$(VERSION)..."
+	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)
+	@echo "# ssmtp-mailer v$(VERSION) Release Notes" > $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "## Release Date" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "$(shell date '+%Y-%m-%d')" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "## What's New" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "- Complete package system with FHS compliance" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "- OAuth2 helper tools for multiple email providers" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "- Professional installer packages for all platforms" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "- Comprehensive documentation and examples" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "## Package Types" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "- **Linux**: DEB, RPM, TGZ packages" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "- **macOS**: DMG and PKG installers" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "- **Windows**: NSIS installer (MSI)" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "- **Source**: Complete source code archive" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "## Installation" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "See the documentation in the docs/ directory for detailed installation instructions." >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "Release notes created: $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md"
+
+# Create complete release package
+release: package-all release-notes
+	@echo "Complete release v$(VERSION) created in: $(DIST_DIR)/releases/v$(VERSION)/"
+	@echo "Contents:"
+	@find $(DIST_DIR)/releases/v$(VERSION)/ -type f -name "*.md" -o -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" -o -name "*.dmg" -o -name "*.pkg" | sort
+	@echo ""
+	@echo "Release is ready for distribution!"
 
 # Debian/Ubuntu package
 package-debian: build
@@ -447,6 +552,11 @@ help:
 	@echo "  package-debian   - Build DEB package using Debian script"
 	@echo "  package-redhat   - Build RPM package using Red Hat script"
 	@echo "  package-freebsd  - Build FreeBSD package using FreeBSD script"
+	@echo ""
+	@echo "🚀 RELEASE MANAGEMENT:"
+	@echo "  package-all      - Build organized release packages for all platforms"
+	@echo "  release          - Create complete release with notes and organization"
+	@echo "  release-notes    - Generate release notes for current version"
 ifeq ($(PLATFORM),macos)
 	@echo "  package-dmg      - Build macOS DMG package for distribution"
 else
