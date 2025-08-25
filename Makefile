@@ -44,11 +44,11 @@ SCRIPTS_DIR = scripts
 all: build
 
 # Create build directory
-$(BUILD_DIR):
+$(BUILD_DIR)-dir:
 	mkdir -p $(BUILD_DIR)
 
 # Build using CMake
-build: $(BUILD_DIR)
+build: $(BUILD_DIR)-dir
 	cd $(BUILD_DIR) && cmake .. && make -j$(PARALLEL_JOBS)
 
 # Clean build
@@ -497,4 +497,4 @@ endif
 	@echo ""
 	@echo "💡 Tip: Use 'make help' anytime to see this information again!"
 
-.PHONY: all build clean install uninstall test package package-rpm package-deb package-dmg build-32 build-64 build-multiarch build-universal build-intel build-arm64 debug release analyze format check-style deps docker-build docker-run help info status deps-status check
+.PHONY: all clean install uninstall test package package-rpm package-deb package-dmg build-32 build-64 build-multiarch build-universal build-intel build-arm64 debug release analyze format check-style deps docker-build docker-run help info status deps-status check
