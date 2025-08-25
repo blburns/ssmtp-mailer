@@ -98,6 +98,21 @@ chmod +x scripts/build-macos.sh
 ./scripts/build-macos.sh --help                # Show all options
 ```
 
+### Using the Makefile Integration
+
+The Makefile now includes integrated support for the build scripts:
+
+```bash
+# Auto-detect platform and use appropriate build script
+make build-script
+
+# Force macOS build script
+make build-macos
+
+# Build and package using scripts
+make package-script
+```
+
 ### Manual CMake Build
 
 For advanced users who want full control over the build process:

@@ -260,9 +260,33 @@ int main() {
 
 ## Building
 
-### Basic Build
+### Recommended Build (Using Specialized Scripts)
 
 ```bash
+# Auto-detect platform and use appropriate build script
+make build-script
+
+# This automatically selects:
+# - macOS: build-macos.sh
+# - Ubuntu/Debian: build-debian.sh  
+# - Red Hat/CentOS/Fedora: build-redhat.sh
+# - FreeBSD: build-freebsd.sh
+```
+
+### Manual Build Script Selection
+
+```bash
+# Force specific build script regardless of platform
+make build-debian     # Debian/Ubuntu build script
+make build-redhat     # Red Hat build script
+make build-freebsd    # FreeBSD build script
+make build-macos      # macOS build script
+```
+
+### Traditional CMake Build
+
+```bash
+# Standard CMake build
 make build
 ```
 
@@ -294,8 +318,33 @@ make build-multiarch
 
 ### Package Building
 
+#### Recommended (Using Specialized Scripts)
+
 ```bash
-# Build platform-specific packages
+# Auto-detect platform and build appropriate package
+make package-script
+
+# This automatically builds:
+# - macOS: DMG package
+# - Ubuntu/Debian: DEB package
+# - Red Hat/CentOS/Fedora: RPM package
+# - FreeBSD: TGZ package
+```
+
+#### Manual Package Selection
+
+```bash
+# Force specific package type regardless of platform
+make package-debian   # Build DEB package
+make package-redhat   # Build RPM package
+make package-freebsd  # Build FreeBSD package
+make package-dmg      # Build macOS DMG package
+```
+
+#### Traditional Package Building
+
+```bash
+# Build platform-specific packages using CMake
 make package
 
 # On macOS: creates DMG package
@@ -319,6 +368,39 @@ make format
 
 # Style checking
 make check-style
+```
+
+## Build Scripts
+
+The project includes specialized build scripts for different platforms that handle dependency installation, platform detection, and package creation automatically.
+
+### Available Build Scripts
+
+- **`scripts/build-debian.sh`** - Debian/Ubuntu systems with DEB package support
+- **`scripts/build-redhat.sh`** - Red Hat/CentOS/Fedora systems with RPM package support
+- **`scripts/build-freebsd.sh`** - FreeBSD systems with TGZ package support
+- **`scripts/build-macos.sh`** - macOS systems with DMG package support
+
+### Script Features
+
+- **Automatic dependency installation** for each platform
+- **Platform detection** and appropriate tool selection
+- **Package creation** with platform-specific formats
+- **Comprehensive error handling** and user feedback
+- **Cross-compilation support** for different architectures
+
+### Usage Examples
+
+```bash
+# Direct script usage
+./scripts/build-debian.sh --package
+./scripts/build-redhat.sh --package
+./scripts/build-freebsd.sh --package
+
+# Script options
+./scripts/build-debian.sh --help
+./scripts/build-debian.sh --debug
+./scripts/build-debian.sh --clean
 ```
 
 ## Directory Structure
