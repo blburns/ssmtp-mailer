@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "ssmtp-mailer/mailer.hpp"
+#include "ssmtp-mailer/unified_mailer.hpp"
 #include "core/logging/logger.hpp"
 
 void printUsage() {
@@ -14,9 +15,12 @@ void printUsage() {
     
     std::cout << "\nCommands:" << std::endl;
     std::cout << "  send                 Send an email" << std::endl;
+    std::cout << "  send-api             Send an email via API" << std::endl;
     std::cout << "  test                 Test SMTP connection" << std::endl;
+    std::cout << "  test-api             Test API connection" << std::endl;
     std::cout << "  config               Show configuration status" << std::endl;
     std::cout << "  queue                Manage email queue" << std::endl;
+    std::cout << "  api                  Manage API configurations" << std::endl;
     
     std::cout << "\nQueue Subcommands:" << std::endl;
     std::cout << "  start                Start the email processing queue" << std::endl;
@@ -28,10 +32,12 @@ void printUsage() {
     
     std::cout << "\nExamples:" << std::endl;
     std::cout << "  ssmtp-mailer send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
+    std::cout << "  ssmtp-mailer send-api --provider sendgrid --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
     std::cout << "  ssmtp-mailer queue add --from user@example.com --to recipient@domain.com --subject 'Queued' --body 'Hello'" << std::endl;
     std::cout << "  ssmtp-mailer queue start" << std::endl;
     std::cout << "  ssmtp-mailer queue status" << std::endl;
     std::cout << "  ssmtp-mailer test" << std::endl;
+    std::cout << "  ssmtp-mailer test-api --provider sendgrid" << std::endl;
     std::cout << "  ssmtp-mailer --config /path/to/config.conf send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
 }
 
@@ -63,6 +69,34 @@ bool parseSendCommand(const std::vector<std::string>& args, std::string& from, s
     }
     
     return !from.empty() && !to.empty() && !subject.empty() && !body.empty();
+}
+
+bool parseSendAPICommand(const std::vector<std::string>& args, std::string& provider, std::string& from, 
+                        std::string& to, std::string& subject, std::string& body, std::string& html_body) {
+    provider.clear();
+    from.clear();
+    to.clear();
+    subject.clear();
+    body.clear();
+    html_body.clear();
+    
+    for (size_t i = 0; i < args.size(); ++i) {
+        if (args[i] == "--provider" && i + 1 < args.size()) {
+            provider = args[++i];
+        } else if (args[i] == "--from" && i + 1 < args.size()) {
+            from = args[++i];
+        } else if (args[i] == "--to" && i + 1 < args.size()) {
+            to = args[++i];
+        } else if (args[i] == "--subject" && i + 1 < args.size()) {
+            subject = args[++i];
+        } else if (args[i] == "--body" && i + 1 < args.size()) {
+            body = args[++i];
+        } else if (args[i] == "--html" && i + 1 < args.size()) {
+            html_body = args[++i];
+        }
+    }
+    
+    return !provider.empty() && !from.empty() && !to.empty() && !subject.empty() && !body.empty();
 }
 
 int main(int argc, char* argv[]) {
@@ -183,6 +217,77 @@ int main(int argc, char* argv[]) {
             } else {
                 std::cout << "  Status: Ready" << std::endl;
             }
+            
+            return 0;
+            
+        } else if (command == "send-api") {
+            // Parse send-api command arguments
+            std::vector<std::string> send_args(args.begin() + 1, args.end());
+            std::string provider, from, to, subject, body, html_body;
+            
+            if (!parseSendAPICommand(send_args, provider, from, to, subject, body, html_body)) {
+                std::cerr << "Error: Invalid send-api command arguments" << std::endl;
+                std::cout << "Usage: send-api --provider PROVIDER --from EMAIL --to EMAIL --subject SUBJECT --body BODY [--html HTML_BODY]" << std::endl;
+                std::cout << "Supported providers: sendgrid, mailgun, ses" << std::endl;
+                return 1;
+            }
+            
+            logger.info("Sending email via API from " + from + " to " + to + " using " + provider);
+            
+            // Validate provider
+            if (provider != "sendgrid" && provider != "mailgun" && provider != "ses") {
+                std::cerr << "Error: Unsupported provider '" << provider << "'" << std::endl;
+                std::cout << "Supported providers: sendgrid, mailgun, ses" << std::endl;
+                return 1;
+            }
+            
+            std::cout << "API-based email sending configured for provider: " << provider << std::endl;
+            std::cout << "From: " << from << std::endl;
+            std::cout << "To: " << to << std::endl;
+            std::cout << "Subject: " << subject << std::endl;
+            std::cout << "Body: " << body << std::endl;
+            if (!html_body.empty()) {
+                std::cout << "HTML Body: " << html_body << std::endl;
+            }
+            
+            std::cout << "\nNote: To actually send emails, configure the API credentials in api-config.conf" << std::endl;
+            std::cout << "and use the unified mailer programmatically or implement the full integration." << std::endl;
+            
+            return 0;
+            
+        } else if (command == "test-api") {
+            logger.info("Testing API connection");
+            
+            if (args.size() < 2) {
+                std::cerr << "Error: test-api requires --provider argument" << std::endl;
+                std::cerr << "Usage: test-api --provider PROVIDER" << std::endl;
+                return 1;
+            }
+            
+            std::string provider;
+            for (size_t i = 1; i < args.size(); ++i) {
+                if (args[i] == "--provider" && i + 1 < args.size()) {
+                    provider = args[++i];
+                    break;
+                }
+            }
+            
+            if (provider.empty()) {
+                std::cerr << "Error: No provider specified" << std::endl;
+                return 1;
+            }
+            
+            // Validate provider
+            if (provider != "sendgrid" && provider != "mailgun" && provider != "ses") {
+                std::cerr << "Error: Unsupported provider '" << provider << "'" << std::endl;
+                std::cout << "Supported providers: sendgrid, mailgun, ses" << std::endl;
+                return 1;
+            }
+            
+            std::cout << "Testing API connection for provider: " << provider << std::endl;
+            std::cout << "API testing configured for provider: " << provider << std::endl;
+            std::cout << "\nNote: To actually test connections, configure the API credentials in api-config.conf" << std::endl;
+            std::cout << "and use the unified mailer programmatically or implement the full integration." << std::endl;
             
             return 0;
             

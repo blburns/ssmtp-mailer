@@ -1,0 +1,122 @@
+# API Configuration for ssmtp-mailer
+# This file configures API-based email sending for various providers
+
+[api:sendgrid]
+# SendGrid API configuration
+enabled = true
+provider = SENDGRID
+api_key = your_sendgrid_api_key_here
+base_url = https://api.sendgrid.com
+endpoint = /v3/mail/send
+sender_email = your-verified-sender@yourdomain.com
+sender_name = Your Company Name
+timeout_seconds = 30
+verify_ssl = true
+enable_tracking = true
+webhook_url = https://yourdomain.com/webhooks/sendgrid
+
+# Custom headers (optional)
+custom_headers = {
+    "X-Custom-Header" = "CustomValue"
+}
+
+[api:mailgun]
+# Mailgun API configuration
+enabled = true
+provider = MAILGUN
+api_key = your_mailgun_api_key_here
+base_url = https://api.mailgun.net/v3
+endpoint = /yourdomain.com/messages
+sender_email = your-verified-sender@yourdomain.com
+sender_name = Your Company Name
+timeout_seconds = 30
+verify_ssl = true
+enable_tracking = false
+
+# Mailgun-specific settings
+domain = yourdomain.com
+region = us  # or eu
+
+[api:amazon-ses]
+# Amazon SES API configuration
+enabled = true
+provider = AMAZON_SES
+api_key = your_aws_access_key_id
+api_secret = your_aws_secret_access_key
+base_url = https://email.us-east-1.amazonaws.com
+endpoint = /v2/email
+sender_email = your-verified-sender@yourdomain.com
+sender_name = Your Company Name
+timeout_seconds = 30
+verify_ssl = true
+enable_tracking = false
+
+# AWS-specific settings
+region = us-east-1
+ses_configuration_set = your-config-set-name
+
+[api:postmark]
+# Postmark API configuration (not yet implemented)
+enabled = false
+provider = POSTMARK
+api_key = your_postmark_api_key_here
+base_url = https://api.postmarkapp.com
+endpoint = /email
+sender_email = your-verified-sender@yourdomain.com
+sender_name = Your Company Name
+
+[api:sparkpost]
+# SparkPost API configuration (not yet implemented)
+enabled = false
+provider = SPARKPOST
+api_key = your_sparkpost_api_key_here
+base_url = https://api.sparkpost.com/api/v1
+endpoint = /transmissions
+sender_email = your-verified-sender@yourdomain.com
+sender_name = Your Company Name
+
+[api:mailjet]
+# Mailjet API configuration (not yet implemented)
+enabled = false
+provider = MAILJET
+api_key = your_mailjet_api_key_here
+api_secret = your_mailjet_api_secret_here
+base_url = https://api.mailjet.com/v3.1
+endpoint = /send
+sender_email = your-verified-sender@yourdomain.com
+sender_name = Your Company Name
+
+# Global API settings
+[api:global]
+# Default timeout for all API requests
+default_timeout = 30
+
+# Default SSL verification
+default_verify_ssl = true
+
+# Retry settings
+max_retries = 3
+retry_delay_seconds = 5
+
+# Rate limiting
+requests_per_second = 10
+burst_limit = 100
+
+# Logging
+log_api_calls = true
+log_response_bodies = false
+
+# Proxy settings (optional)
+# proxy_url = http://proxy.company.com:8080
+# proxy_username = proxy_user
+# proxy_password = proxy_pass
+
+# Monitoring and webhooks
+enable_webhooks = true
+webhook_secret = your_webhook_secret_here
+webhook_timeout = 10
+
+# Health check settings
+health_check_interval = 300  # 5 minutes
+health_check_timeout = 10
+health_check_endpoint = /health

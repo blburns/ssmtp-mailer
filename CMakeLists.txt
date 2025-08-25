@@ -432,19 +432,22 @@ endif()
 if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
     # Create macOS packages (DMG and PKG)
     set(CPACK_GENERATOR "DragNDrop;productbuild")
-    set(CPACK_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for macOS")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
     set(CPACK_PACKAGE_CONTACT "support@blburns.com")
     
+    # Set the correct package naming format: {VERSION}-{OS}-{ARCH}
+    set(CPACK_PACKAGE_FILE_NAME "ssmtp-mailer-${PROJECT_VERSION}-macOS-${SYSTEM_ARCH}")
+    
     # DMG specific settings
-    set(CPACK_DMG_VOLUME_NAME "ssmtp-mailer-${PROJECT_VERSION}-${SYSTEM_ARCH}")
+    set(CPACK_DMG_VOLUME_NAME "ssmtp-mailer-${PROJECT_VERSION}-macOS-${SYSTEM_ARCH}")
     set(CPACK_DMG_FORMAT "UDZO")
     # Note: Background image and DS_Store setup script removed - create macos/ directory if needed
     
     # PKG specific settings (productbuild)
-    set(CPACK_PRODUCTBUILD_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}-${SYSTEM_ARCH}")
+    set(CPACK_PRODUCTBUILD_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}-macOS-${SYSTEM_ARCH}")
     set(CPACK_PRODUCTBUILD_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PRODUCTBUILD_PACKAGE_DESCRIPTION "Simple SMTP Mailer for macOS - ${SYSTEM_ARCH}")
     set(CPACK_PRODUCTBUILD_PACKAGE_VENDOR "ssmtp-mailer")
@@ -459,11 +462,14 @@ if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
 elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
     # Create Linux packages (DEB, RPM, TGZ)
     set(CPACK_GENERATOR "DEB;RPM;TGZ")
-    set(CPACK_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Linux")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
     set(CPACK_PACKAGE_CONTACT "support@blburns.com")
+    
+    # Set the correct package naming format: {VERSION}-{OS}-{ARCH}
+    set(CPACK_PACKAGE_FILE_NAME "ssmtp-mailer-${PROJECT_VERSION}-Linux-${SYSTEM_ARCH}")
     
     # DEB specific settings
     set(CPACK_DEBIAN_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
@@ -485,8 +491,8 @@ elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
     set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpm/postinst")
     set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpm/postun")
     
-    # TGZ specific settings
-    set(CPACK_TGZ_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}-${SYSTEM_ARCH}")
+    # TGZ specific settings (source package - no OS/ARCH needed)
+    set(CPACK_TGZ_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}-source")
     
     include(CPack)
 
@@ -494,16 +500,19 @@ elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
 elseif(PLATFORM_WINDOWS AND BUILD_SHARED_LIBS)
     # Create Windows installer
     set(CPACK_GENERATOR "NSIS")
-    set(CPACK_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Windows")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
     set(CPACK_PACKAGE_CONTACT "support@blburns.com")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "ssmtp-mailer")
     
+    # Set the correct package naming format: {VERSION}-{OS}-{ARCH}
+    set(CPACK_PACKAGE_FILE_NAME "ssmtp-mailer-${PROJECT_VERSION}-Windows-${SYSTEM_ARCH}")
+    
     # NSIS specific settings
     set(CPACK_NSIS_DISPLAY_NAME "ssmtp-mailer ${PROJECT_VERSION} (${SYSTEM_ARCH})")
-    set(CPACK_NSIS_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
+    set(CPACK_NSIS_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}-Windows-${SYSTEM_ARCH}")
     set(CPACK_NSIS_CONTACT "support@blburns.com")
     set(CPACK_NSIS_URL "https://github.com/ssmtp-mailer/ssmtp-mailer")
     set(CPACK_NSIS_ENABLE_DIRECTORY_PAGE ON)
