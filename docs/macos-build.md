@@ -407,7 +407,7 @@ For macOS Catalina and later, consider notarizing your application:
 xcrun altool --notarize-app --primary-bundle-id "com.example.ssmtp-mailer" \
     --username "your-apple-id@example.com" \
     --password "app-specific-password" \
-    --file dist/ssmtp-mailer-0.1.0.dmg
+    --file dist/ssmtp-mailer-0.2.0.dmg
 ```
 
 ## Support

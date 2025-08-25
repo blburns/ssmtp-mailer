@@ -36,7 +36,7 @@ void printUsage() {
 }
 
 void printVersion() {
-    std::cout << "ssmtp-mailer v0.1.0" << std::endl;
+    std::cout << "ssmtp-mailer v0.2.0" << std::endl;
     std::cout << "Simple SMTP Mailer for Linux and macOS" << std::endl;
 }
 
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     }
     
     ssmtp_mailer::Logger& logger = ssmtp_mailer::Logger::getInstance();
-    logger.info("ssmtp-mailer v0.1.0 starting up");
+    logger.info("ssmtp-mailer v0.2.0 starting up");
     
     // Check if we have a command
     if (args.empty() || args[0].substr(0, 2) == "--") {

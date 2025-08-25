@@ -3,7 +3,7 @@
 
 # Variables
 PROJECT_NAME = ssmtp-mailer
-VERSION = 0.0.1
+VERSION = 0.2.0
 BUILD_DIR = build
 DIST_DIR = dist
 PACKAGE_DIR = packaging
