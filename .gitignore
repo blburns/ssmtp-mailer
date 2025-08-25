@@ -4,6 +4,11 @@ dist/
 out/
 cmake-build-*/
 
+# Release artifacts and packages
+dist/releases/
+dist/packages/
+dist/artifacts/
+
 # Source code (allow all source files)
 # src/
 

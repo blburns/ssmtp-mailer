@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
-project(ssmtp-mailer VERSION 0.2.0 LANGUAGES CXX)
+# Get system architecture for package naming
+execute_process(COMMAND uname -m OUTPUT_VARIABLE SYSTEM_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(STATUS "System architecture: ${SYSTEM_ARCH}")
+
+project(ssmtp-mailer-${SYSTEM_ARCH} VERSION 0.2.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -197,11 +201,11 @@ file(GLOB_RECURSE HEADERS
 )
 
 # Create main executable
-add_executable(ssmtp-mailer ${SOURCES})
+add_executable(ssmtp-mailer-${SYSTEM_ARCH} ${SOURCES})
 
 # Create shared library
-add_library(ssmtp-mailer-lib SHARED ${SOURCES})
-set_target_properties(ssmtp-mailer-lib PROPERTIES
+add_library(ssmtp-mailer-lib-${SYSTEM_ARCH} SHARED ${SOURCES})
+set_target_properties(ssmtp-mailer-lib-${SYSTEM_ARCH} PROPERTIES
     OUTPUT_NAME "ssmtp-mailer"
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
@@ -227,8 +231,8 @@ elseif(PLATFORM_WINDOWS)
 endif()
 
 # Link libraries
-target_link_libraries(ssmtp-mailer
-    ssmtp-mailer-lib
+target_link_libraries(ssmtp-mailer-${SYSTEM_ARCH}
+    ssmtp-mailer-lib-${SYSTEM_ARCH}
     ${OPENSSL_LIBRARIES}
     ${JSONCPP_LIBRARIES}
     ${CURL_LIBRARIES}
@@ -237,12 +241,12 @@ target_link_libraries(ssmtp-mailer
 
 # Add linker flags to suppress dylib warnings on macOS
 if(PLATFORM_MACOS)
-    set_target_properties(ssmtp-mailer PROPERTIES
+    set_target_properties(ssmtp-mailer-${SYSTEM_ARCH} PROPERTIES
         LINK_FLAGS "-Wl,-w"
     )
 endif()
 
-target_link_libraries(ssmtp-mailer-lib
+target_link_libraries(ssmtp-mailer-lib-${SYSTEM_ARCH}
     ${OPENSSL_LIBRARIES}
     ${JSONCPP_LIBRARIES}
     ${CURL_LIBRARIES}
@@ -251,18 +255,18 @@ target_link_libraries(ssmtp-mailer-lib
 
 # Add linker flags to suppress dylib warnings on macOS
 if(PLATFORM_MACOS)
-    set_target_properties(ssmtp-mailer-lib PROPERTIES
+    set_target_properties(ssmtp-mailer-lib-${SYSTEM_ARCH} PROPERTIES
         LINK_FLAGS "-Wl,-w"
     )
 endif()
 
 # Compiler flags
-target_compile_options(ssmtp-mailer PRIVATE
+target_compile_options(ssmtp-mailer-${SYSTEM_ARCH} PRIVATE
     -Wall -Wextra -Wpedantic
     -O2 -DNDEBUG
 )
 
-target_compile_options(ssmtp-mailer-lib PRIVATE
+target_compile_options(ssmtp-mailer-lib-${SYSTEM_ARCH} PRIVATE
     -Wall -Wextra -Wpedantic
     -O2 -DNDEBUG
     -fPIC
@@ -270,20 +274,20 @@ target_compile_options(ssmtp-mailer-lib PRIVATE
 
 # Platform-specific compile definitions
 if(PLATFORM_MACOS)
-    target_compile_definitions(ssmtp-mailer PRIVATE PLATFORM_MACOS=1)
-    target_compile_definitions(ssmtp-mailer-lib PRIVATE PLATFORM_MACOS=1)
+    target_compile_definitions(ssmtp-mailer-${SYSTEM_ARCH} PRIVATE PLATFORM_MACOS=1)
+    target_compile_definitions(ssmtp-mailer-lib-${SYSTEM_ARCH} PRIVATE PLATFORM_MACOS=1)
 elseif(PLATFORM_LINUX)
-    target_compile_definitions(ssmtp-mailer PRIVATE PLATFORM_LINUX=1)
-    target_compile_definitions(ssmtp-mailer-lib PRIVATE PLATFORM_LINUX=1)
+    target_compile_definitions(ssmtp-mailer-${SYSTEM_ARCH} PRIVATE PLATFORM_LINUX=1)
+    target_compile_definitions(ssmtp-mailer-lib-${SYSTEM_ARCH} PRIVATE PLATFORM_LINUX=1)
 elseif(PLATFORM_WINDOWS)
-    target_compile_definitions(ssmtp-mailer PRIVATE PLATFORM_WINDOWS=1)
-    target_compile_definitions(ssmtp-mailer-lib PRIVATE PLATFORM_WINDOWS=1)
+    target_compile_definitions(ssmtp-mailer-${SYSTEM_ARCH} PRIVATE PLATFORM_WINDOWS=1)
+    target_compile_definitions(ssmtp-mailer-lib-${SYSTEM_ARCH} PRIVATE PLATFORM_WINDOWS=1)
 endif()
 
 # Install targets with platform-specific destinations
 if(PLATFORM_MACOS)
     # macOS install paths
-    install(TARGETS ssmtp-mailer ssmtp-mailer-lib
+    install(TARGETS ssmtp-mailer-${SYSTEM_ARCH} ssmtp-mailer-lib-${SYSTEM_ARCH}
         RUNTIME DESTINATION /usr/local/bin
         LIBRARY DESTINATION /usr/local/lib
         ARCHIVE DESTINATION /usr/local/lib
@@ -309,7 +313,7 @@ if(PLATFORM_MACOS)
     
 elseif(PLATFORM_WINDOWS)
     # Windows install paths
-    install(TARGETS ssmtp-mailer ssmtp-mailer-lib
+    install(TARGETS ssmtp-mailer-${SYSTEM_ARCH} ssmtp-mailer-lib-${SYSTEM_ARCH}
         RUNTIME DESTINATION "C:/Program Files/ssmtp-mailer/bin"
         LIBRARY DESTINATION "C:/Program Files/ssmtp-mailer/lib"
         ARCHIVE DESTINATION "C:/Program Files/ssmtp-mailer/lib"
@@ -339,7 +343,7 @@ elseif(PLATFORM_WINDOWS)
     
 else()
     # Linux install paths - Follow FHS standards
-    install(TARGETS ssmtp-mailer ssmtp-mailer-lib
+    install(TARGETS ssmtp-mailer-${SYSTEM_ARCH} ssmtp-mailer-lib-${SYSTEM_ARCH}
         RUNTIME DESTINATION usr/bin
         LIBRARY DESTINATION usr/lib
         ARCHIVE DESTINATION usr/lib
@@ -354,13 +358,13 @@ else()
     install(CODE "
         # Create symlink for ssmtp-mailer binary
         execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink 
-            /usr/bin/ssmtp-mailer /usr/local/bin/ssmtp-mailer
+            /usr/bin/ssmtp-mailer-${SYSTEM_ARCH} /usr/local/bin/ssmtp-mailer
             WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
             ERROR_QUIET
         )
         # Create symlink for ssmtp-mailer-lib
         execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink 
-            /usr/lib/libssmtp-mailer-lib.so /usr/local/lib/libssmtp-mailer-lib.so
+            /usr/lib/libssmtp-mailer-lib-${SYSTEM_ARCH}.so /usr/local/lib/libssmtp-mailer-lib.so
             WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
             ERROR_QUIET
         )
@@ -391,36 +395,36 @@ endif()
 # Package configuration
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-${SYSTEM_ARCH}-config-version.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ssmtp-mailer-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-${SYSTEM_ARCH}-config.cmake"
     @ONLY
 )
 
 # Install CMake package configuration files
 if(PLATFORM_MACOS)
     install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
-        DESTINATION /usr/local/lib/cmake/ssmtp-mailer
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-${SYSTEM_ARCH}-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-${SYSTEM_ARCH}-config-version.cmake"
+        DESTINATION /usr/local/lib/cmake/ssmtp-mailer-${SYSTEM_ARCH}
     )
 elseif(PLATFORM_WINDOWS)
     install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
-        DESTINATION "C:/Program Files/ssmtp-mailer/lib/cmake/ssmtp-mailer"
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-${SYSTEM_ARCH}-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-${SYSTEM_ARCH}-config-version.cmake"
+        DESTINATION "C:/Program Files/ssmtp-mailer/lib/cmake/ssmtp-mailer-${SYSTEM_ARCH}"
     )
 else()
     # Linux - standard FHS location
     install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
-        DESTINATION usr/lib/cmake/ssmtp-mailer
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-${SYSTEM_ARCH}-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-${SYSTEM_ARCH}-config-version.cmake"
+        DESTINATION usr/lib/cmake/ssmtp-mailer-${SYSTEM_ARCH}
     )
 endif()
 
@@ -428,13 +432,13 @@ endif()
 if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
     # Create macOS package
     set(CPACK_GENERATOR "DragNDrop")
-    set(CPACK_DMG_VOLUME_NAME "ssmtp-mailer-${PROJECT_VERSION}")
+    set(CPACK_DMG_VOLUME_NAME "ssmtp-mailer-${PROJECT_VERSION}-${SYSTEM_ARCH}")
     set(CPACK_DMG_FORMAT "UDZO")
-    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
-    set(CPACK_PACKAGE_CONTACT "support@blburns.com")
+    set(CPACK_PACKAGE_CONTACT "support@blburns.com"
     
     # macOS specific settings - follow standard Unix conventions
     set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/macos/background.png")
@@ -449,14 +453,14 @@ if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
 elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
     # Create Linux packages (DEB, RPM, TGZ)
     set(CPACK_GENERATOR "DEB;RPM;TGZ")
-    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Linux")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
-    set(CPACK_PACKAGE_CONTACT "support@blburns.com")
+    set(CPACK_PACKAGE_CONTACT "support@blburns.com"
     
     # DEB specific settings
-    set(CPACK_DEBIAN_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_DEBIAN_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libssl3, libcurl4, libjsoncpp25")
     set(CPACK_DEBIAN_PACKAGE_SECTION "mail")
     set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
@@ -466,7 +470,7 @@ elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
     set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/debian/postrm")
     
     # RPM specific settings
-    set(CPACK_RPM_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_RPM_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
     set(CPACK_RPM_PACKAGE_REQUIRES "openssl, libcurl, jsoncpp")
     set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
     set(CPACK_RPM_PACKAGE_URL "https://github.com/ssmtp-mailer/ssmtp-mailer")
@@ -476,7 +480,7 @@ elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
     set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpm/postun")
     
     # TGZ specific settings
-    set(CPACK_TGZ_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}")
+    set(CPACK_TGZ_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}-${SYSTEM_ARCH}")
     
     include(CPack)
 
@@ -484,18 +488,18 @@ elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
 elseif(PLATFORM_WINDOWS AND BUILD_SHARED_LIBS)
     # Create Windows installer
     set(CPACK_GENERATOR "NSIS")
-    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Windows")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
     set(CPACK_PACKAGE_CONTACT "support@blburns.com")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "ssmtp-mailer")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "ssmtp-mailer"
     
     # NSIS specific settings
-    set(CPACK_NSIS_DISPLAY_NAME "ssmtp-mailer ${PROJECT_VERSION}")
-    set(CPACK_NSIS_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_NSIS_DISPLAY_NAME "ssmtp-mailer ${PROJECT_VERSION} (${SYSTEM_ARCH})")
+    set(CPACK_NSIS_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
     set(CPACK_NSIS_CONTACT "support@blburns.com")
-    set(CPACK_NSIS_URL "https://github.com/ssmtp-mailer/ssmtp-mailer")
+    set(CPACK_NSIS_URL "https://github.com/ssmtp-mailer/ssmtp-mailer"
     set(CPACK_NSIS_ENABLE_DIRECTORY_PAGE ON)
     set(CPACK_NSIS_MODIFY_PATH ON)
     set(CPACK_NSIS_MENU_LINKS "https://github.com/ssmtp-mailer/ssmtp-mailer" "Documentation")
