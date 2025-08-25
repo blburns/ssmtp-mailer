@@ -51,6 +51,49 @@ if(ENABLE_SSL)
     find_package(OpenSSL REQUIRED)
 endif()
 
+# Find jsoncpp for JSON parsing
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
+if(NOT JSONCPP_FOUND)
+    # Try to find jsoncpp without pkg-config
+    find_library(JSONCPP_LIBRARIES jsoncpp)
+    find_path(JSONCPP_INCLUDE_DIRS json/json.h)
+    if(JSONCPP_LIBRARIES AND JSONCPP_INCLUDE_DIRS)
+        set(JSONCPP_FOUND TRUE)
+        set(JSONCPP_LIBRARIES ${JSONCPP_LIBRARIES})
+        set(JSONCPP_INCLUDE_DIRS ${JSONCPP_INCLUDE_DIRS})
+    endif()
+endif()
+
+if(NOT JSONCPP_FOUND)
+    message(WARNING "jsoncpp not found. Service Account authentication will not be available.")
+    add_definitions(-DDISABLE_SERVICE_ACCOUNT_AUTH)
+else()
+    message(STATUS "Found jsoncpp: ${JSONCPP_LIBRARIES}")
+    add_definitions(-DENABLE_SERVICE_ACCOUNT_AUTH)
+endif()
+
+# Find libcurl for HTTP requests
+find_package(CURL REQUIRED)
+if(NOT CURL_FOUND)
+    # Try to find libcurl without find_package
+    find_library(CURL_LIBRARIES curl)
+    find_path(CURL_INCLUDE_DIRS curl/curl.h)
+    if(CURL_LIBRARIES AND CURL_INCLUDE_DIRS)
+        set(CURL_FOUND TRUE)
+        set(CURL_LIBRARIES ${CURL_LIBRARIES})
+        set(CURL_INCLUDE_DIRS ${CURL_INCLUDE_DIRS})
+    endif()
+endif()
+
+if(NOT CURL_FOUND)
+    message(WARNING "libcurl not found. Service Account authentication will not be available.")
+    add_definitions(-DDISABLE_SERVICE_ACCOUNT_AUTH)
+else()
+    message(STATUS "Found libcurl: ${CURL_LIBRARIES}")
+    add_definitions(-DENABLE_SERVICE_ACCOUNT_AUTH)
+endif()
+
 # Platform-specific library handling
 if(PLATFORM_MACOS)
     # macOS specific libraries
@@ -79,11 +122,11 @@ if(PLATFORM_MACOS)
     
 elseif(PLATFORM_LINUX)
     # Linux specific libraries
-    find_library(SOCKET_LIBRARY socket)
+    # Socket functions are part of libc, no need to find_library
+    # RT library for real-time functions
     find_library(RT_LIBRARY rt)
     
     set(PLATFORM_LIBRARIES 
-        ${SOCKET_LIBRARY}
         ${RT_LIBRARY}
         pthread
     )
@@ -116,6 +159,16 @@ endif()
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src)
+
+# Add jsoncpp include directories if found
+if(JSONCPP_FOUND)
+    include_directories(${JSONCPP_INCLUDE_DIRS})
+endif()
+
+# Add libcurl include directories if found
+if(CURL_FOUND)
+    include_directories(${CURL_INCLUDE_DIRS})
+endif()
 
 # Source files (exclude tests)
 file(GLOB_RECURSE SOURCES 
@@ -167,11 +220,15 @@ endif()
 target_link_libraries(ssmtp-mailer
     ssmtp-mailer-lib
     ${OPENSSL_LIBRARIES}
+    ${JSONCPP_LIBRARIES}
+    ${CURL_LIBRARIES}
     ${PLATFORM_LIBRARIES}
 )
 
 target_link_libraries(ssmtp-mailer-lib
     ${OPENSSL_LIBRARIES}
+    ${JSONCPP_LIBRARIES}
+    ${CURL_LIBRARIES}
     ${PLATFORM_LIBRARIES}
 )
 

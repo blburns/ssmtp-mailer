@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail OAuth2 Helper</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            border-color: #1a73e8;
+            outline: none;
+        }
+        .btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background: #1557b0;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        .status-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+        .status-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .status-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        .tokens {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+        .token-info {
+            margin: 15px 0;
+        }
+        .token-info p {
+            margin: 8px 0;
+            font-family: monospace;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .token-actions {
+            margin-top: 20px;
+        }
+        .token-actions button {
+            background: #34a853;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .token-actions button:hover {
+            background: #2d8745;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ffeaa7;
+            margin: 20px 0;
+        }
+        .instructions {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #1a73e8;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #1a73e8;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Gmail OAuth2 Helper</h1>
+        
+        <div class="instructions">
+            <h3>📋 Setup Instructions:</h3>
+            <ol>
+                <li>Get your OAuth2 Client ID and Client Secret from <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                <li>Fill in the form below with your credentials</li>
+                <li>Click "Start OAuth2 Flow" to begin authentication</li>
+                <li>Authorize your application in the popup window</li>
+                <li>Copy the refresh token for your mail relay configuration</li>
+            </ol>
+        </div>
+
+        <form id="oauth2-form">
+            <div class="form-group">
+                <label for="clientId">OAuth2 Client ID:</label>
+                <input type="text" id="clientId" placeholder="Enter your OAuth2 Client ID" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="clientSecret">OAuth2 Client Secret:</label>
+                <input type="text" id="clientSecret" placeholder="Enter your OAuth2 Client Secret" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="redirectUri">Redirect URI:</label>
+                <input type="text" id="redirectUri" value="http://localhost:8080" placeholder="http://localhost:8080">
+                <small>Use localhost for testing, or your domain for production</small>
+            </div>
+            
+            <button type="button" class="btn" onclick="startOAuth2()">🚀 Start OAuth2 Flow</button>
+            <button type="button" class="btn" onclick="clearTokens()">🗑️ Clear Tokens</button>
+        </form>
+
+        <div id="oauth2-status" class="status" style="display: none;"></div>
+        <div id="oauth2-tokens" class="tokens" style="display: none;"></div>
+
+        <div class="warning">
+            <strong>⚠️ Important:</strong> This tool is for development/testing. In production, never expose your client secret in client-side code. The refresh token should be stored securely on your server.
+        </div>
+    </div>
+
+    <script>
+        class GmailOAuth2Helper {
+            constructor(clientId, clientSecret, redirectUri) {
+                this.clientId = clientId;
+                this.clientSecret = clientSecret;
+                this.redirectUri = redirectUri;
+                this.tokens = null;
+                this.authCode = null;
+            }
+
+            startAuth() {
+                const state = this.generateRandomString(32);
+                localStorage.setItem('oauth2_state', state);
+                
+                const authUrl = this.buildAuthUrl(state);
+                
+                const popup = window.open(
+                    authUrl,
+                    'gmail_oauth2',
+                    'width=600,height=700,scrollbars=yes,resizable=yes'
+                );
+                
+                this.listenForCallback(popup, state);
+            }
+
+            buildAuthUrl(state) {
+                const params = new URLSearchParams({
+                    client_id: this.clientId,
+                    redirect_uri: this.redirectUri,
+                    response_type: 'code',
+                    scope: 'https://mail.google.com/',
+                    access_type: 'offline',
+                    prompt: 'consent',
+                    state: state
+                });
+                
+                return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+            }
+
+            listenForCallback(popup, expectedState) {
+                const checkClosed = setInterval(() => {
+                    if (popup.closed) {
+                        clearInterval(checkClosed);
+                    }
+                }, 1000);
+
+                // Listen for message from popup
+                window.addEventListener('message', (event) => {
+                    if (event.origin !== window.location.origin) return;
+                    
+                    if (event.data.type === 'oauth2_callback') {
+                        const { code, state } = event.data;
+                        
+                        if (state !== expectedState) {
+                            this.showError('Invalid state parameter. Possible CSRF attack.');
+                            return;
+                        }
+                        
+                        this.authCode = code;
+                        this.exchangeCodeForTokens();
+                        popup.close();
+                    }
+                });
+            }
+
+            async exchangeCodeForTokens() {
+                try {
+                    this.showStatus('Exchanging authorization code for tokens...');
+                    
+                    const response = await fetch('https://oauth2.googleapis.com/token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            client_id: this.clientId,
+                            client_secret: this.clientSecret,
+                            code: this.authCode,
+                            grant_type: 'authorization_code',
+                            redirect_uri: this.redirectUri
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Token exchange failed: ${response.status}`);
+                    }
+
+                    this.tokens = await response.json();
+                    this.showSuccess();
+                    this.saveTokens();
+                    
+                } catch (error) {
+                    console.error('Token exchange error:', error);
+                    this.showError(`Failed to exchange tokens: ${error.message}`);
+                }
+            }
+
+            saveTokens() {
+                localStorage.setItem('gmail_oauth2_tokens', JSON.stringify(this.tokens));
+                console.log('Tokens saved to localStorage');
+            }
+
+            getTokens() {
+                const saved = localStorage.getItem('gmail_oauth2_tokens');
+                return saved ? JSON.parse(saved) : null;
+            }
+
+            generateRandomString(length) {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let result = '';
+                for (let i = 0; i < length; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+
+            showStatus(message) {
+                this.updateStatus(message, 'info');
+            }
+
+            showSuccess() {
+                this.updateStatus('✅ OAuth2 authentication successful!', 'success');
+                this.displayTokens();
+            }
+
+            showError(message) {
+                this.updateStatus(`❌ ${message}`, 'error');
+            }
+
+            updateStatus(message, type) {
+                const statusEl = document.getElementById('oauth2-status');
+                if (statusEl) {
+                    statusEl.textContent = message;
+                    statusEl.className = `status status-${type}`;
+                    statusEl.style.display = 'block';
+                }
+                console.log(`[OAuth2] ${message}`);
+            }
+
+            displayTokens() {
+                const tokensEl = document.getElementById('oauth2-tokens');
+                if (tokensEl && this.tokens) {
+                    tokensEl.innerHTML = `
+                        <h3>🎉 OAuth2 Tokens Received!</h3>
+                        <div class="token-info">
+                            <p><strong>Access Token:</strong> <code>${this.tokens.access_token.substring(0, 30)}...</code></p>
+                            <p><strong>Refresh Token:</strong> <code>${this.tokens.refresh_token.substring(0, 30)}...</code></p>
+                            <p><strong>Expires In:</strong> ${this.tokens.expires_in} seconds</p>
+                            <p><strong>Token Type:</strong> ${this.tokens.token_type}</p>
+                        </div>
+                        <div class="token-actions">
+                            <button onclick="copyRefreshToken()">📋 Copy Refresh Token</button>
+                            <button onclick="downloadTokens()">💾 Download Tokens</button>
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 6px;">
+                            <strong>✅ Success!</strong> Copy the refresh token above and use it in your mail relay configuration. 
+                            The access token will expire in ${this.tokens.expires_in} seconds, but the refresh token is long-lived.
+                        </div>
+                    `;
+                    tokensEl.style.display = 'block';
+                }
+            }
+        }
+
+        let oauth2Helper = null;
+
+        function startOAuth2() {
+            const clientId = document.getElementById('clientId').value.trim();
+            const clientSecret = document.getElementById('clientSecret').value.trim();
+            const redirectUri = document.getElementById('redirectUri').value.trim();
+
+            if (!clientId || !clientSecret) {
+                alert('Please enter both Client ID and Client Secret');
+                return;
+            }
+
+            if (!redirectUri) {
+                alert('Please enter a redirect URI');
+                return;
+            }
+
+            // Create OAuth2 helper instance
+            oauth2Helper = new GmailOAuth2Helper(clientId, clientSecret, redirectUri);
+            
+            // Start the OAuth2 flow
+            oauth2Helper.startAuth();
+        }
+
+        function clearTokens() {
+            localStorage.removeItem('gmail_oauth2_tokens');
+            document.getElementById('oauth2-status').style.display = 'none';
+            document.getElementById('oauth2-tokens').style.display = 'none';
+            alert('Tokens cleared from localStorage');
+        }
+
+        function copyRefreshToken() {
+            const tokens = JSON.parse(localStorage.getItem('gmail_oauth2_tokens'));
+            if (tokens && tokens.refresh_token) {
+                navigator.clipboard.writeText(tokens.refresh_token).then(() => {
+                    alert('Refresh token copied to clipboard!');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = tokens.refresh_token;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('Refresh token copied to clipboard!');
+                });
+            }
+        }
+
+        function downloadTokens() {
+            const tokens = localStorage.getItem('gmail_oauth2_tokens');
+            if (tokens) {
+                const blob = new Blob([tokens], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'gmail_oauth2_tokens.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Check if we have existing tokens on page load
+        window.addEventListener('load', () => {
+            const existingTokens = localStorage.getItem('gmail_oauth2_tokens');
+            if (existingTokens) {
+                try {
+                    const tokens = JSON.parse(existingTokens);
+                    if (tokens.refresh_token) {
+                        document.getElementById('oauth2-status').innerHTML = '✅ You have existing tokens. You can use them or start a new OAuth2 flow.';
+                        document.getElementById('oauth2-status').className = 'status status-success';
+                        document.getElementById('oauth2-status').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Error parsing existing tokens:', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

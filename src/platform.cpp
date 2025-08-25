@@ -13,6 +13,7 @@
     #include <unistd.h>
     #include <pwd.h>
     #include <cstdlib>
+    #include <limits.h>
 #endif
 
 namespace ssmtp_mailer {
