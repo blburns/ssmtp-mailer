@@ -1,13 +1,10 @@
-# OAuth2 Setup Guide for Gmail SMTP
+# Gmail OAuth2 Setup Guide
 
 ## Overview
 
-Since Google has phased out App Passwords for many accounts, you now need to use OAuth2 for Gmail SMTP authentication. This guide covers **two approaches**:
+This guide covers setting up OAuth2 authentication for Gmail and Google Workspace with ssmtp-mailer. Since Google has phased out App Passwords for many accounts, OAuth2 is now the recommended authentication method.
 
-1. **OAuth2 User Authentication** - For personal accounts and development
-2. **Service Account Authentication** - For production servers and domain-wide delegation
-
-## Authentication Methods Comparison
+## 🔐 Authentication Methods
 
 | Method | Use Case | Security | Automation | Setup Complexity |
 |--------|----------|----------|------------|------------------|
@@ -15,35 +12,46 @@ Since Google has phased out App Passwords for many accounts, you now need to use
 | **OAuth2 User** | Personal accounts, dev | High | ⚠️ Manual refresh | Medium |
 | **Service Account** | Production servers | Highest | ✅ Fully automated | High |
 
-## Method 1: OAuth2 User Authentication
-
-**Best for**: Personal accounts, development, single-user setups
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Python 3.6+ installed (for Python script) OR modern web browser (for HTML helper)
+- Python 3.6+ installed
 - OAuth2 Client ID from Google Cloud Console
 - OAuth2 Client Secret from Google Cloud Console
 - Gmail account with 2FA enabled
-- Domain verification (for production use)
+
+### 1. Use the Helper Tool
+```bash
+# Launch Gmail OAuth2 helper
+python3 tools/oauth2-helper/oauth2-helper.py gmail
+
+# Or run directly
+python3 tools/oauth2-helper/python/gmail-oauth2-helper.py
+```
+
+### 2. Follow the Prompts
+1. Enter your OAuth2 Client ID
+2. Enter your OAuth2 Client Secret
+3. Open the authorization URL in your browser
+4. Sign in and grant permissions
+5. Tokens will be saved to `oauth2_tokens.json`
+
+## 📋 Detailed Setup
 
 ### Step 1: Google Cloud Console Setup
 
 #### 1.1 Create/Select Project
-
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select existing one
 3. Note your **Project ID** for later use
 
 #### 1.2 Enable Gmail API
-
 1. **APIs & Services** → **Library**
 2. Search for "Gmail API"
 3. Click **Enable**
 4. Wait for API to be enabled
 
 #### 1.3 Configure OAuth Consent Screen
-
 1. **APIs & Services** → **OAuth consent screen**
 2. Choose **External** user type
 3. Fill in required information:
@@ -56,7 +64,6 @@ Since Google has phased out App Passwords for many accounts, you now need to use
 7. Click **Save and Continue**
 
 #### 1.4 Create OAuth2 Credentials
-
 1. **APIs & Services** → **Credentials**
 2. Click **Create Credentials** → **OAuth 2.0 Client IDs**
 3. Choose **Web application**
@@ -68,48 +75,9 @@ Since Google has phased out App Passwords for many accounts, you now need to use
 5. Click **Create**
 6. **Save both Client ID and Client Secret**
 
-### Step 2: Choose Your OAuth2 Helper
+### Step 2: OAuth2 Authentication Flow
 
-#### Option A: Python Script (Command Line)
-
-**Best for**: Developers, servers, automation
-
-```bash
-# Install dependencies
-pip install requests
-
-# Run the helper
-python scripts/oauth2-helper.py
-```
-
-**Features**:
-- ✅ Command-line interface
-- ✅ Automatic browser opening
-- ✅ Local callback server
-- ✅ Token saving to file
-- ✅ Cross-platform
-
-#### Option B: HTML File (Browser)
-
-**Best for**: Quick testing, non-technical users
-
-```bash
-# Just open in browser
-open scripts/oauth2-helper.html
-# or
-firefox scripts/oauth2-helper.html
-```
-
-**Features**:
-- ✅ No installation required
-- ✅ Works in any modern browser
-- ✅ Simple copy-paste interface
-- ✅ Local storage for tokens
-
-### Step 3: OAuth2 Authentication Flow
-
-#### 3.1 Start Authentication
-
+#### 2.1 Start Authentication
 1. **Enter your credentials**:
    - Client ID (from Google Cloud Console)
    - Client Secret (from Google Cloud Console)
@@ -117,8 +85,7 @@ firefox scripts/oauth2-helper.html
 
 2. **Click "Start OAuth2"**
 
-#### 3.2 Google Authorization
-
+#### 2.2 Google Authorization
 1. **Browser opens** to Google's consent screen
 2. **Sign in** with your Gmail account
 3. **Review permissions**:
@@ -126,8 +93,7 @@ firefox scripts/oauth2-helper.html
    - Send emails on your behalf
 4. **Click "Allow"**
 
-#### 3.3 Token Exchange
-
+#### 2.3 Token Exchange
 1. **Authorization code** is sent back to your helper
 2. **Helper exchanges code** for tokens
 3. **Tokens received**:
@@ -135,10 +101,9 @@ firefox scripts/oauth2-helper.html
    - `refresh_token` (long-lived, for renewing access)
    - `expires_in` (seconds until access token expires)
 
-### Step 4: Using Tokens in Your Mail Relay
+### Step 3: Using Tokens in ssmtp-mailer
 
-#### 4.1 Configuration
-
+#### 3.1 Configuration
 ```json
 {
   "smtp": {
@@ -156,8 +121,7 @@ firefox scripts/oauth2-helper.html
 }
 ```
 
-#### 4.2 Token Refresh Process
-
+#### 3.2 Token Refresh Process
 ```mermaid
 graph TD
     A[Access Token Expired] --> B[Use Refresh Token]
@@ -168,21 +132,19 @@ graph TD
     F --> A
 ```
 
-## Method 2: Service Account Authentication
+## 🔧 Service Account Authentication (Advanced)
 
 **Best for**: Production servers, multi-user setups, domain-wide delegation
 
 ### Prerequisites
-
 - Google Cloud Project with Gmail API enabled
 - Google Workspace Admin access (for domain-wide delegation)
 - Service account JSON key file
 - Domain verification completed
 
-### Step 1: Google Cloud Console Setup
+### Setup Steps
 
-#### 1.1 Create Service Account
-
+#### 1. Create Service Account
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Select your project
 3. **APIs & Services** → **Credentials**
@@ -194,24 +156,19 @@ graph TD
 7. **Skip role assignment** → **Continue**
 8. Click **Done**
 
-#### 1.2 Create and Download Private Key
-
+#### 2. Create and Download Private Key
 1. **Click on your service account** (mail-relay-service)
 2. **Keys tab** → **Add Key** → **Create new key**
 3. **Choose JSON format**
 4. **Download the JSON file** (keep this secure!)
 5. **Note the `client_email`** from the JSON file
 
-#### 1.3 Enable Domain-Wide Delegation
-
+#### 3. Enable Domain-Wide Delegation
 1. **In your service account**, click **Details**
 2. **Show domain-wide delegation** → **Enable**
 3. **Copy the Client ID** (you'll need this)
 
-### Step 2: Google Workspace Admin Configuration
-
-#### 2.1 Configure Domain-Wide Delegation
-
+#### 4. Google Workspace Admin Configuration
 1. **Go to [Google Admin Console](https://admin.google.com/)**
 2. **Security** → **Access and data control** → **API controls**
 3. **Manage Domain Wide Delegation**
@@ -219,10 +176,7 @@ graph TD
    - **Client ID**: Paste your service account client ID
    - **OAuth Scopes**: `https://mail.google.com/`
 
-### Step 3: Use in Your Mail Relay
-
-#### 3.1 Configuration
-
+#### 5. Configuration
 ```ini
 [domain:domain1.com]
 enabled = true
@@ -235,89 +189,57 @@ use_ssl = false
 use_starttls = true
 ```
 
-#### 3.2 Automatic Token Generation
+## 🔒 Security Considerations
 
-```mermaid
-graph TD
-    A[Service Account] --> B[Create JWT Token]
-    B --> C[Sign with Private Key]
-    C --> D[Send to Google]
-    D --> E[Google Validates & Returns Access Token]
-    E --> F[Use for SMTP]
-    F --> G[Token Expires in 1 Hour]
-    G --> A
-```
-
-### Step 4: Automated Setup Script
-
-We provide an automated setup script for Service Account authentication:
-
-```bash
-# Make script executable
-chmod +x scripts/setup-service-account.sh
-
-# Run the setup script
-./scripts/setup-service-account.sh
-```
-
-**The script will**:
-- ✅ Create all necessary directories
-- ✅ Guide you through Google Cloud Console setup
-- ✅ Help configure Google Workspace Admin
-- ✅ Generate all configuration files
-- ✅ Set proper file permissions
-- ✅ Provide testing instructions
-
-## Security Considerations
-
-### 5.1 Client Secret Security
-
+### Client Secret Security
 - **Never expose** client secret in client-side code
 - **Use environment variables** or secure configuration
 - **Rotate secrets** if compromised
 - **Limit redirect URIs** to your domains only
 
-### 5.2 Token Security
-
+### Token Security
 - **Refresh tokens** are long-lived - keep secure
 - **Access tokens** expire quickly - less critical
 - **Use HTTPS** for all OAuth2 communications
 - **Validate state parameter** to prevent CSRF
 
-### 5.3 Service Account Security
-
+### Service Account Security
 - **Keep JSON key files secure** (600 permissions)
 - **Use environment variables** for file paths
 - **Rotate keys periodically**
 - **Monitor service account usage**
 - **Limit scopes** to only what's needed
 
-### 5.4 Scope Limitation
+## 🧪 Testing Your Setup
 
-- **Request minimal scopes** needed
-- **Gmail scope**: `https://mail.google.com/`
-- **Avoid broad scopes** like `https://www.googleapis.com/auth/userinfo.profile`
+### 1. Verify Tokens
+```bash
+# Test OAuth2 access token
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+     "https://gmail.googleapis.com/gmail/v1/users/me/profile"
 
-## When to Use Each Method
+# Test service account (if using JWT)
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     "https://gmail.googleapis.com/gmail/v1/users/me/profile"
+```
 
-### Use OAuth2 User Authentication When:
-- ✅ **Personal Gmail accounts**
-- ✅ **Development and testing**
-- ✅ **Single-user setups**
-- ✅ **Quick setup needed**
-- ✅ **No domain admin access**
+### 2. Test SMTP Connection
+```bash
+# Test with openssl
+openssl s_client -connect smtp.gmail.com:587 -starttls smtp
 
-### Use Service Account Authentication When:
-- ✅ **Production servers**
-- ✅ **Multi-user setups**
-- ✅ **Domain-wide delegation needed**
-- ✅ **Fully automated operation**
-- ✅ **Google Workspace admin access**
-- ✅ **Maximum security required**
+# Test with your mailer application
+ssmtp-mailer test
+```
 
-## Troubleshooting
+### 3. Monitor Usage
+- **Google Cloud Console** → **APIs & Services** → **Dashboard**
+- **Quotas and limits** for Gmail API
+- **Error rates** and response times
 
-### 6.1 Common OAuth2 Errors
+## 🆘 Troubleshooting
+
+### Common OAuth2 Errors
 
 #### "redirect_uri_mismatch"
 - **Cause**: Redirect URI doesn't match Google Cloud Console
@@ -335,7 +257,7 @@ chmod +x scripts/setup-service-account.sh
 - **Cause**: Authorization code expired or already used
 - **Fix**: Start new OAuth2 flow
 
-### 6.2 Common Service Account Errors
+### Common Service Account Errors
 
 #### "invalid_grant"
 - **Cause**: Domain-wide delegation not configured
@@ -349,8 +271,7 @@ chmod +x scripts/setup-service-account.sh
 - **Cause**: Incorrect OAuth scope configured
 - **Fix**: Use `https://mail.google.com/` scope
 
-### 6.3 Debug Steps
-
+### Debug Steps
 1. **Check browser console** for JavaScript errors
 2. **Verify network requests** in Developer Tools
 3. **Check Google Cloud Console** logs
@@ -359,129 +280,49 @@ chmod +x scripts/setup-service-account.sh
 6. **Check service account permissions**
 7. **Verify domain-wide delegation**
 
-### 6.4 Production Issues
+## 📚 Best Practices
 
-- **Domain verification** required for production
-- **HTTPS required** for production redirect URIs
-- **Rate limiting** may apply to token requests
-- **Audit logs** available in Google Cloud Console
-
-## Advanced Configuration
-
-### 7.1 Multiple Domains
-
-For multiple domains, create separate configurations:
-
-```bash
-# Domain 1
-domain1.com -> oauth2-client-1 OR service-account-1
-domain2.com -> oauth2-client-2 OR service-account-2
-domain3.com -> oauth2-client-3 OR service-account-3
-```
-
-### 7.2 Token Storage
-
-**Development**:
-- Local file storage
-- Environment variables
-
-**Production**:
-- Secure key management service
-- Encrypted database storage
-- Regular token rotation
-
-### 7.3 Monitoring and Logging
-
-- **Google Cloud Console** → **APIs & Services** → **Dashboard**
-- **Quotas and limits** for Gmail API
-- **Error rates** and response times
-- **Service account usage** metrics
-
-## Testing Your Setup
-
-### 8.1 Verify Tokens
-
-```bash
-# Test OAuth2 access token
-curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-     "https://gmail.googleapis.com/gmail/v1/users/me/profile"
-
-# Test service account (if using JWT)
-curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     "https://gmail.googleapis.com/gmail/v1/users/me/profile"
-```
-
-### 8.2 Test SMTP Connection
-
-```bash
-# Test with openssl
-openssl s_client -connect smtp.gmail.com:587 -starttls smtp
-
-# Test with your mailer application
-ssmtp-mailer test
-```
-
-### 8.3 Monitor Usage
-
-- **Google Cloud Console** → **APIs & Services** → **Dashboard**
-- **Quotas and limits** for Gmail API
-- **Error rates** and response times
-
-## Best Practices
-
-### 9.1 Development
-
+### Development
 - **Use localhost** for testing
 - **Test with personal account** first
 - **Keep credentials** in separate config files
 - **Use environment variables** for secrets
 
-### 9.2 Production
-
+### Production
 - **Verify domain ownership**
 - **Use HTTPS redirect URIs**
 - **Implement proper error handling**
 - **Monitor token refresh failures**
 - **Set up alerts** for authentication issues
 
-### 9.3 Maintenance
-
+### Maintenance
 - **Regular security reviews**
 - **Monitor API usage**
 - **Update OAuth2 consent screen** as needed
 - **Rotate client secrets** periodically
 - **Update service account keys** regularly
 
-## Support and Resources
+## 🔗 Additional Resources
 
-### 10.1 Official Documentation
-
+### Official Documentation
 - [Google OAuth2 Documentation](https://developers.google.com/identity/protocols/oauth2)
 - [Gmail API Documentation](https://developers.google.com/gmail/api)
 - [Google Cloud Console Help](https://cloud.google.com/apis/docs/overview)
 - [Service Account Documentation](https://cloud.google.com/iam/docs/service-accounts)
 
-### 10.2 Community Resources
-
+### Community Resources
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/oauth2+google)
 - [Google Cloud Community](https://cloud.google.com/community)
-- [GitHub Issues](https://github.com/your-repo/issues)
+- [GitHub Issues](https://github.com/blburns/ssmtp-mailer/issues)
 
-### 10.3 Getting Help
-
-If you encounter issues:
-
-1. **Check this guide** for common solutions
-2. **Review Google Cloud Console** logs
-3. **Search community forums** for similar issues
-4. **Open an issue** in our repository with details
-
----
-
-## Summary
+## 📋 Summary
 
 **OAuth2 User Authentication** is great for development and personal use, while **Service Account Authentication** is ideal for production servers and enterprise environments.
 
 Both methods provide secure, modern authentication that replaces the deprecated App Passwords. Choose the method that best fits your use case and security requirements! 🚀
 
 **Remember**: Keep your credentials secure and monitor your authentication systems regularly.
+
+---
+
+*For help with other email providers, see our [OAuth2 documentation index](README.md).*
