@@ -295,7 +295,7 @@ public:
      * @param email Email to queue
      * @param priority Priority level for processing
      */
-    void enqueue(const Email& email, QueuePriority priority = QueuePriority::NORMAL);
+    void enqueue(const Email& email, EmailPriority priority = EmailPriority::NORMAL);
     
     /**
      * @brief Start the email processing queue
@@ -323,13 +323,13 @@ public:
      * @brief Get pending emails from queue
      * @return Vector of pending emails
      */
-    std::vector<QueuedEmail> getPendingEmails() const;
+    std::vector<QueueItem> getPendingEmails() const;
     
     /**
      * @brief Get failed emails from queue
      * @return Vector of failed emails
      */
-    std::vector<QueuedEmail> getFailedEmails() const;
+    std::vector<QueueItem> getFailedEmails() const;
 
 private:
     class Impl;

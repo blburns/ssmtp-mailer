@@ -254,10 +254,10 @@ else
 	@echo "Installing Linux dependencies..."
 	sudo apt-get update
 	sudo apt-get install -y build-essential cmake libssl-dev pkg-config
-	# For RPM building
-	sudo apt-get install -y rpm rpm-build
-	# For DEB building
-	sudo apt-get install -y fakeroot devscripts
+	# For DEB building (Ubuntu/Debian)
+	sudo apt-get install -y fakeroot devscripts build-essential
+	# For RPM building (optional, not recommended on Ubuntu)
+	# sudo apt-get install -y rpm rpm-build alien
 endif
 
 # Docker build (Linux only)
