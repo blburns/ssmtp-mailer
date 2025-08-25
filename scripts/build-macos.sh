@@ -310,21 +310,33 @@ run_tests() {
 # Function to create package
 create_package() {
     if [ "$1" = "--package" ]; then
-        print_status "Creating macOS DMG package..."
+        print_status "Creating macOS packages (DMG and PKG)..."
         cd "$BUILD_DIR"
         
         # Create distribution directory
         mkdir -p "$DIST_DIR"
         
-        # Generate package
+        # Generate DMG package
+        print_status "Creating DMG package..."
         cpack -G DragNDrop
         
-        # Move package to dist directory
+        # Generate PKG package
+        print_status "Creating PKG package..."
+        cpack -G productbuild
+        
+        # Move packages to dist directory
         if ls *.dmg 1> /dev/null 2>&1; then
             mv *.dmg "$DIST_DIR/"
             print_success "DMG package created: $DIST_DIR/"
         else
             print_warning "No DMG package found"
+        fi
+        
+        if ls *.pkg 1> /dev/null 2>&1; then
+            mv *.pkg "$DIST_DIR/"
+            print_success "PKG package created: $DIST_DIR/"
+        else
+            print_warning "No PKG package found"
         fi
     fi
 }
@@ -449,10 +461,8 @@ main() {
     # Run tests
     run_tests
     
-    # Create package if requested
-    if [ "$PACKAGE_REQUESTED" = true ]; then
-        create_package --package
-    fi
+    # Create package (always create by default)
+    create_package --package
     
     # Show build summary
     show_build_summary

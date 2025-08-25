@@ -213,18 +213,18 @@ set_target_properties(ssmtp-mailer-lib-${SYSTEM_ARCH} PROPERTIES
 
 # Platform-specific target properties
 if(PLATFORM_MACOS)
-    set_target_properties(ssmtp-mailer PROPERTIES
+    set_target_properties(ssmtp-mailer-${SYSTEM_ARCH} PROPERTIES
         MACOSX_BUNDLE FALSE
         MACOSX_RPATH "@executable_path/../lib"
     )
-    set_target_properties(ssmtp-mailer-lib PROPERTIES
+    set_target_properties(ssmtp-mailer-lib-${SYSTEM_ARCH} PROPERTIES
         MACOSX_RPATH "@loader_path"
     )
 elseif(PLATFORM_WINDOWS)
-    set_target_properties(ssmtp-mailer PROPERTIES
+    set_target_properties(ssmtp-mailer-${SYSTEM_ARCH} PROPERTIES
         WIN32_EXECUTABLE TRUE
     )
-    set_target_properties(ssmtp-mailer-lib PROPERTIES
+    set_target_properties(ssmtp-mailer-lib-${SYSTEM_ARCH} PROPERTIES
         PREFIX ""
         SUFFIX ".dll"
     )
@@ -430,22 +430,28 @@ endif()
 
 # macOS package generation
 if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
-    # Create macOS package
-    set(CPACK_GENERATOR "DragNDrop")
-    set(CPACK_DMG_VOLUME_NAME "ssmtp-mailer-${PROJECT_VERSION}-${SYSTEM_ARCH}")
-    set(CPACK_DMG_FORMAT "UDZO")
+    # Create macOS packages (DMG and PKG)
+    set(CPACK_GENERATOR "DragNDrop;productbuild")
     set(CPACK_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for macOS")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
-    set(CPACK_PACKAGE_CONTACT "support@blburns.com"
+    set(CPACK_PACKAGE_CONTACT "support@blburns.com")
     
-    # macOS specific settings - follow standard Unix conventions
-    set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/macos/background.png")
-    set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/macos/setup-ds-store.scpt")
+    # DMG specific settings
+    set(CPACK_DMG_VOLUME_NAME "ssmtp-mailer-${PROJECT_VERSION}-${SYSTEM_ARCH}")
+    set(CPACK_DMG_FORMAT "UDZO")
+    # Note: Background image and DS_Store setup script removed - create macos/ directory if needed
     
-    # Ensure macOS package follows standard Unix FHS
-    set(CPACK_MACOSX_PACKAGE_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/macos/postinstall;${CMAKE_CURRENT_SOURCE_DIR}/macos/postuninstall")
+    # PKG specific settings (productbuild)
+    set(CPACK_PRODUCTBUILD_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}-${SYSTEM_ARCH}")
+    set(CPACK_PRODUCTBUILD_PACKAGE_VERSION "${PROJECT_VERSION}")
+    set(CPACK_PRODUCTBUILD_PACKAGE_DESCRIPTION "Simple SMTP Mailer for macOS - ${SYSTEM_ARCH}")
+    set(CPACK_PRODUCTBUILD_PACKAGE_VENDOR "ssmtp-mailer")
+    set(CPACK_PRODUCTBUILD_PACKAGE_CONTACT "support@blburns.com")
+    
+    # Ensure macOS packages follow standard Unix FHS
+    # Note: Package scripts removed - create macos/ directory if needed
     
     include(CPack)
     
@@ -457,7 +463,7 @@ elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Linux")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
-    set(CPACK_PACKAGE_CONTACT "support@blburns.com"
+    set(CPACK_PACKAGE_CONTACT "support@blburns.com")
     
     # DEB specific settings
     set(CPACK_DEBIAN_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
@@ -493,13 +499,13 @@ elseif(PLATFORM_WINDOWS AND BUILD_SHARED_LIBS)
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Windows")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
     set(CPACK_PACKAGE_CONTACT "support@blburns.com")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "ssmtp-mailer"
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "ssmtp-mailer")
     
     # NSIS specific settings
     set(CPACK_NSIS_DISPLAY_NAME "ssmtp-mailer ${PROJECT_VERSION} (${SYSTEM_ARCH})")
     set(CPACK_NSIS_PACKAGE_NAME "ssmtp-mailer-${SYSTEM_ARCH}")
     set(CPACK_NSIS_CONTACT "support@blburns.com")
-    set(CPACK_NSIS_URL "https://github.com/ssmtp-mailer/ssmtp-mailer"
+    set(CPACK_NSIS_URL "https://github.com/ssmtp-mailer/ssmtp-mailer")
     set(CPACK_NSIS_ENABLE_DIRECTORY_PAGE ON)
     set(CPACK_NSIS_MODIFY_PATH ON)
     set(CPACK_NSIS_MENU_LINKS "https://github.com/ssmtp-mailer/ssmtp-mailer" "Documentation")
