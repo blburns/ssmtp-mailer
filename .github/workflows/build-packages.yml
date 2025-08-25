@@ -1,0 +1,149 @@
+name: Build Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build for'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - linux
+          - macos
+          - windows
+      version:
+        description: 'Version to build'
+        required: false
+        default: '0.2.0'
+        type: string
+
+jobs:
+  build-linux:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'linux' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libssl-dev libcurl4-openssl-dev libjsoncpp-dev
+
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make -j$(nproc)
+
+      - name: Create packages
+        run: |
+          cd build
+          cpack -G DEB
+          cpack -G RPM
+          cpack -G TGZ
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: build/ssmtp-mailer-*.{deb,rpm,tar.gz}
+          retention-days: 30
+
+  build-macos:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'macos' }}
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup build environment
+        run: |
+          brew install cmake openssl@3 curl jsoncpp
+
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Create macOS packages
+        run: |
+          cd build
+          cpack -G DragNDrop
+
+      - name: Upload macOS packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-packages
+          path: build/ssmtp-mailer-*.dmg
+          retention-days: 30
+
+  build-windows:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'windows' }}
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup build environment
+        run: |
+          choco install cmake ninja openssl
+
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+          ninja
+
+      - name: Create Windows packages
+        run: |
+          cd build
+          cpack -G NSIS
+
+      - name: Upload Windows packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-packages
+          path: build/ssmtp-mailer-*.exe
+          retention-days: 30
+
+  package-summary:
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Show package summary
+        run: |
+          echo "📦 Package Build Summary for ${{ github.event.inputs.version }}"
+          echo "=================================================="
+          
+          if [ -d "artifacts/linux-packages" ]; then
+            echo "🐧 Linux Packages:"
+            ls -la artifacts/linux-packages/
+            echo ""
+          fi
+          
+          if [ -d "artifacts/macos-packages" ]; then
+            echo "🍎 macOS Packages:"
+            ls -la artifacts/macos-packages/
+            echo ""
+          fi
+          
+          if [ -d "artifacts/windows-packages" ]; then
+            echo "🪟 Windows Packages:"
+            ls -la artifacts/windows-packages/
+            echo ""
+          fi
+          
+          echo "✅ All packages built successfully!"
+          echo "📥 Download them from the Actions tab → Artifacts"

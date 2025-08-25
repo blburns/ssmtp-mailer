@@ -1,0 +1,229 @@
+name: Build and Release Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - distro: ubuntu-20.04
+            package_type: deb
+          - distro: ubuntu-22.04
+            package_type: deb
+          - distro: ubuntu-24.04
+            package_type: deb
+          - distro: centos-7
+            package_type: rpm
+          - distro: centos-8
+            package_type: rpm
+          - distro: fedora-38
+            package_type: rpm
+          - distro: fedora-39
+            package_type: rpm
+          - distro: fedora-40
+            package_type: rpm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libssl-dev libcurl4-openssl-dev libjsoncpp-dev
+
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make -j$(nproc)
+
+      - name: Create packages
+        run: |
+          cd build
+          cpack -G DEB
+          cpack -G RPM
+          cpack -G TGZ
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages-${{ matrix.distro }}
+          path: build/ssmtp-mailer-*.{deb,rpm,tar.gz}
+          retention-days: 30
+
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            target: 11.0
+          - arch: arm64
+            target: 12.0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup build environment
+        run: |
+          brew install cmake openssl@3 curl jsoncpp
+
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }}
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Create macOS packages
+        run: |
+          cd build
+          cpack -G DragNDrop
+
+      - name: Upload macOS packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-packages-${{ matrix.arch }}
+          path: build/ssmtp-mailer-*.dmg
+          retention-days: 30
+
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+          - arch: x86
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup build environment
+        run: |
+          choco install cmake ninja openssl
+
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+          ninja
+
+      - name: Create Windows packages
+        run: |
+          cd build
+          cpack -G NSIS
+
+      - name: Upload Windows packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-packages-${{ matrix.arch }}
+          path: build/ssmtp-mailer-*.exe
+          retention-days: 30
+
+  create-release:
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release directory structure
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p release/v$VERSION/{linux,macos,windows,source}
+          
+          # Move Linux packages
+          find artifacts -name "linux-packages-*" -type d | while read dir; do
+            cp "$dir"/*.deb release/v$VERSION/linux/ 2>/dev/null || true
+            cp "$dir"/*.rpm release/v$VERSION/linux/ 2>/dev/null || true
+            cp "$dir"/*.tar.gz release/v$VERSION/linux/ 2>/dev/null || true
+          done
+          
+          # Move macOS packages
+          find artifacts -name "macos-packages-*" -type d | while read dir; do
+            cp "$dir"/*.dmg release/v$VERSION/macos/ 2>/dev/null || true
+          done
+          
+          # Move Windows packages
+          find artifacts -name "windows-packages-*" -type d | while read dir; do
+            cp "$dir"/*.exe release/v$VERSION/windows/ 2>/dev/null || true
+          done
+          
+          # Create source package
+          git archive --format=tar.gz --prefix=ssmtp-mailer-$VERSION/ HEAD > release/v$VERSION/source/ssmtp-mailer-$VERSION-source.tar.gz
+          
+          # Copy documentation
+          cp -r docs release/v$VERSION/
+          
+          # Create release notes
+          cat > release/v$VERSION/RELEASE_NOTES.md << EOF
+          # ssmtp-mailer $VERSION Release Notes
+          
+          ## Release Date
+          $(date '+%Y-%m-%d')
+          
+          ## What's New
+          - Complete package system with FHS compliance
+          - OAuth2 helper tools for multiple email providers
+          - Professional installer packages for all platforms
+          - Comprehensive documentation and examples
+          - Cross-platform build system
+          
+          ## Package Types
+          - **Linux**: DEB, RPM, TGZ packages
+          - **macOS**: DMG and PKG installers
+          - **Windows**: NSIS installer (MSI)
+          - **Source**: Complete source code archive
+          
+          ## Installation
+          See the documentation in the docs/ directory for detailed installation instructions.
+          
+          ## Build Information
+          - **Build Date**: $(date)
+          - **GitHub Actions**: Automated build and release
+          - **Git Commit**: $GITHUB_SHA
+          - **Git Tag**: $VERSION
+          EOF
+          
+          # Create checksums
+          cd release/v$VERSION
+          find . -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" -o -name "*.dmg" -o -name "*.exe" \) -exec sha256sum {} \; > SHA256SUMS
+          find . -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" -o -name "*.dmg" -o -name "*.exe" \) -exec md5sum {} \; > MD5SUMS
+          cd ../..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          name: ssmtp-mailer ${{ github.ref_name }}
+          body_path: release/v${{ github.ref_name }}/RELEASE_NOTES.md
+          files: |
+            release/v${{ github.ref_name }}/**/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-packages
+          path: release/
+          retention-days: 90
