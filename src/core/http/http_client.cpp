@@ -90,6 +90,8 @@ static size_t HeaderCallback(char* buffer, size_t size, size_t nitems, std::map<
 }
 
 static int ProgressCallback(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+    (void)dltotal; // Suppress unused parameter warning
+    (void)dlnow;   // Suppress unused parameter warning
     auto* callback = static_cast<std::function<void(size_t, size_t)>*>(clientp);
     if (callback && *callback) {
         (*callback)(static_cast<size_t>(ulnow), static_cast<size_t>(ultotal));

@@ -1,10 +1,11 @@
 #include "ssmtp-mailer/unified_mailer.hpp"
 #include "core/config/config_manager.hpp"
-#include "core/smtp/smtp_client.hpp"
+#include "ssmtp-mailer/smtp_client.hpp"
 #include <algorithm>
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <mutex>
 
 namespace ssmtp_mailer {
 
@@ -153,7 +154,7 @@ bool UnifiedMailer::testConnection(SendMethod method, const std::string& provide
                 return false;
             }
             
-        case SendMethod::API:
+        case SendMethod::API: {
             // Test API connection
             if (provider.empty()) {
                 // Test first available provider
@@ -166,6 +167,7 @@ bool UnifiedMailer::testConnection(SendMethod method, const std::string& provide
             if (it == api_clients_.end()) return false;
             
             return it->second->testConnection();
+        }
             
         case SendMethod::AUTO:
             // Test both methods
@@ -225,7 +227,8 @@ std::map<std::string, size_t> UnifiedMailer::getStatistics() const {
 void UnifiedMailer::initializeSMTP() {
     if (!config_.smtp_config_file.empty()) {
         try {
-            smtp_config_ = std::make_unique<ConfigManager>(config_.smtp_config_file);
+            smtp_config_ = std::make_unique<ConfigManager>();
+            smtp_config_->loadFromFile(config_.smtp_config_file);
         } catch (const std::exception& e) {
             std::cerr << "Failed to initialize SMTP configuration: " << e.what() << std::endl;
         }
@@ -244,6 +247,7 @@ void UnifiedMailer::initializeAPIClients() {
 }
 
 void UnifiedMailer::updateStats(const std::string& key, bool success) {
+    (void)success; // Suppress unused parameter warning
     std::lock_guard<std::mutex> lock(stats_mutex_);
     auto it = stats_.find(key);
     if (it != stats_.end()) {
@@ -252,6 +256,7 @@ void UnifiedMailer::updateStats(const std::string& key, bool success) {
 }
 
 std::string UnifiedMailer::selectBestProvider(const Email& email) {
+    (void)email; // Suppress unused parameter warning
     // Simple provider selection logic
     // In a real implementation, you might want to consider:
     // - Provider reliability

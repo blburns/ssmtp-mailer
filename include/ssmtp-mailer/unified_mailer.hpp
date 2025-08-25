@@ -4,6 +4,9 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <mutex>
+#include <map>
+#include <chrono>
 #include "ssmtp-mailer/mailer.hpp"
 #include "ssmtp-mailer/api_client.hpp"
 #include "ssmtp-mailer/queue_types.hpp"
