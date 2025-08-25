@@ -280,37 +280,101 @@ elseif(PLATFORM_WINDOWS)
     target_compile_definitions(ssmtp-mailer-lib PRIVATE PLATFORM_WINDOWS=1)
 endif()
 
-# Install targets
-install(TARGETS ssmtp-mailer ssmtp-mailer-lib
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
-
-install(DIRECTORY include/ DESTINATION include)
-
-# Install OAuth2 helper tools
-install(DIRECTORY tools/oauth2-helper/ DESTINATION share/ssmtp-mailer/oauth2-helper)
-
-# Install documentation
-install(DIRECTORY docs/ DESTINATION share/ssmtp-mailer/docs)
-
-# Install license and readme
-install(FILES LICENSE README.md DESTINATION share/ssmtp-mailer)
-
-# Platform-specific install paths
+# Install targets with platform-specific destinations
 if(PLATFORM_MACOS)
     # macOS install paths
+    install(TARGETS ssmtp-mailer ssmtp-mailer-lib
+        RUNTIME DESTINATION /usr/local/bin
+        LIBRARY DESTINATION /usr/local/lib
+        ARCHIVE DESTINATION /usr/local/lib
+    )
+    install(DIRECTORY include/ DESTINATION /usr/local/include)
     install(DIRECTORY config/ DESTINATION /usr/local/etc/ssmtp-mailer)
+    install(DIRECTORY tools/oauth2-helper/ DESTINATION /usr/local/share/ssmtp-mailer/oauth2-helper)
+    install(DIRECTORY docs/ DESTINATION /usr/local/share/ssmtp-mailer/docs)
+    install(FILES LICENSE README.md DESTINATION /usr/local/share/ssmtp-mailer)
+    
+    # Create additional directories for macOS
+    install(CODE "
+        # Create additional directories for OAuth2 tools and logs
+        execute_process(COMMAND \${CMAKE_COMMAND} -E make_directory /usr/local/var/log/ssmtp-mailer
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+        execute_process(COMMAND \${CMAKE_COMMAND} -E make_directory /usr/local/etc/ssmtp-mailer/oauth2
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+    ")
+    
 elseif(PLATFORM_WINDOWS)
     # Windows install paths
+    install(TARGETS ssmtp-mailer ssmtp-mailer-lib
+        RUNTIME DESTINATION "C:/Program Files/ssmtp-mailer/bin"
+        LIBRARY DESTINATION "C:/Program Files/ssmtp-mailer/lib"
+        ARCHIVE DESTINATION "C:/Program Files/ssmtp-mailer/lib"
+    )
+    install(DIRECTORY include/ DESTINATION "C:/Program Files/ssmtp-mailer/include")
     install(DIRECTORY config/ DESTINATION "C:/Program Files/ssmtp-mailer/config")
-    install(TARGETS ssmtp-mailer RUNTIME DESTINATION "C:/Program Files/ssmtp-mailer/bin")
-    install(TARGETS ssmtp-mailer-lib RUNTIME DESTINATION "C:/Program Files/ssmtp-mailer/bin")
-    install(TARGETS ssmtp-mailer-lib ARCHIVE DESTINATION "C:/Program Files/ssmtp-mailer/lib")
+    install(DIRECTORY tools/oauth2-helper/ DESTINATION "C:/Program Files/ssmtp-mailer/oauth2-helper")
+    install(DIRECTORY docs/ DESTINATION "C:/Program Files/ssmtp-mailer/docs")
+    install(FILES LICENSE README.md DESTINATION "C:/Program Files/ssmtp-mailer")
+    
+    # Create additional directories for Windows
+    install(CODE "
+        # Create additional directories for OAuth2 tools and logs
+        execute_process(COMMAND \${CMAKE_COMMAND} -E make_directory \"C:/Program Files/ssmtp-mailer/logs\"
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+        execute_process(COMMAND \${CMAKE_COMMAND} -E make_directory \"C:/Program Files/ssmtp-mailer/oauth2\"
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+        execute_process(COMMAND \${CMAKE_COMMAND} -E make_directory \"C:/Program Files/ssmtp-mailer/temp\"
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+    ")
+    
 else()
-    # Linux install paths
+    # Linux install paths - Follow FHS standards
+    install(TARGETS ssmtp-mailer ssmtp-mailer-lib
+        RUNTIME DESTINATION usr/bin
+        LIBRARY DESTINATION usr/lib
+        ARCHIVE DESTINATION usr/lib
+    )
+    install(DIRECTORY include/ DESTINATION usr/include)
     install(DIRECTORY config/ DESTINATION etc/ssmtp-mailer)
+    install(DIRECTORY tools/oauth2-helper/ DESTINATION usr/share/ssmtp-mailer/oauth2-helper)
+    install(DIRECTORY docs/ DESTINATION usr/share/ssmtp-mailer/docs)
+    install(FILES LICENSE README.md DESTINATION usr/share/ssmtp-mailer)
+    
+    # Create symlinks for convenience (similar to alternatives)
+    install(CODE "
+        # Create symlink for ssmtp-mailer binary
+        execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink 
+            /usr/bin/ssmtp-mailer /usr/local/bin/ssmtp-mailer
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+        # Create symlink for ssmtp-mailer-lib
+        execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink 
+            /usr/lib/libssmtp-mailer-lib.so /usr/local/lib/libssmtp-mailer-lib.so
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+        
+        # Create additional directories for OAuth2 tools and logs
+        execute_process(COMMAND \${CMAKE_COMMAND} -E make_directory /var/log/ssmtp-mailer
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+        execute_process(COMMAND \${CMAKE_COMMAND} -E make_directory /etc/ssmtp-mailer/oauth2
+            WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX}
+            ERROR_QUIET
+        )
+    ")
 endif()
 
 # Tests
@@ -338,11 +402,27 @@ configure_file(
     @ONLY
 )
 
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
-    DESTINATION lib/cmake/ssmtp-mailer
-)
+# Install CMake package configuration files
+if(PLATFORM_MACOS)
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
+        DESTINATION /usr/local/lib/cmake/ssmtp-mailer
+    )
+elseif(PLATFORM_WINDOWS)
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
+        DESTINATION "C:/Program Files/ssmtp-mailer/lib/cmake/ssmtp-mailer"
+    )
+else()
+    # Linux - standard FHS location
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ssmtp-mailer-config-version.cmake"
+        DESTINATION usr/lib/cmake/ssmtp-mailer
+    )
+endif()
 
 # macOS package generation
 if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
@@ -355,6 +435,13 @@ if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
     set(CPACK_PACKAGE_CONTACT "support@blburns.com")
+    
+    # macOS specific settings - follow standard Unix conventions
+    set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/macos/background.png")
+    set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/macos/setup-ds-store.scpt")
+    
+    # Ensure macOS package follows standard Unix FHS
+    set(CPACK_MACOSX_PACKAGE_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/macos/postinstall;${CMAKE_CURRENT_SOURCE_DIR}/macos/postuninstall")
     
     include(CPack)
     
@@ -375,11 +462,18 @@ elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
     set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
     set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/ssmtp-mailer/ssmtp-mailer")
     
+    # Ensure DEB package follows FHS
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/debian/postrm")
+    
     # RPM specific settings
     set(CPACK_RPM_PACKAGE_NAME "ssmtp-mailer")
     set(CPACK_RPM_PACKAGE_REQUIRES "openssl, libcurl, jsoncpp")
     set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
     set(CPACK_RPM_PACKAGE_URL "https://github.com/ssmtp-mailer/ssmtp-mailer")
+    
+    # Ensure RPM package follows FHS
+    set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpm/postinst")
+    set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpm/postun")
     
     # TGZ specific settings
     set(CPACK_TGZ_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}")
@@ -405,6 +499,27 @@ elseif(PLATFORM_WINDOWS AND BUILD_SHARED_LIBS)
     set(CPACK_NSIS_ENABLE_DIRECTORY_PAGE ON)
     set(CPACK_NSIS_MODIFY_PATH ON)
     set(CPACK_NSIS_MENU_LINKS "https://github.com/ssmtp-mailer/ssmtp-mailer" "Documentation")
+    
+    # Windows specific settings - follow Windows conventions
+    set(CPACK_NSIS_INSTALL_ROOT "C:\\Program Files")
+    set(CPACK_NSIS_PROGRAM_MENU_DIR "ssmtp-mailer")
+    set(CPACK_NSIS_DESKTOP_SHORTCUT ON)
+    set(CPACK_NSIS_START_MENU_SHORTCUT ON)
+    
+    # Ensure Windows package follows Windows conventions
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+        # Create Start Menu shortcuts
+        CreateDirectory \\\"$SMPROGRAMS\\\\ssmtp-mailer\\\"
+        CreateShortCut \\\"$SMPROGRAMS\\\\ssmtp-mailer\\\\ssmtp-mailer.lnk\\\" \\\"$INSTDIR\\\\bin\\\\ssmtp-mailer.exe\\\"
+        CreateShortCut \\\"$SMPROGRAMS\\\\ssmtp-mailer\\\\Documentation.lnk\\\" \\\"$INSTDIR\\\\docs\\\\README.md\\\"
+        
+        # Create Desktop shortcut
+        CreateShortCut \\\"$DESKTOP\\\\ssmtp-mailer.lnk\\\" \\\"$INSTDIR\\\\bin\\\\ssmtp-mailer.exe\\\"
+        
+        # Add to PATH
+        EnVar::SetHKLM
+        EnVar::AddValue \\\"Path\\\" \\\"$INSTDIR\\\\bin\\\"
+    ")
     
     include(CPack)
 endif()
