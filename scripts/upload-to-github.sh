@@ -82,11 +82,13 @@ check_release_exists() {
         case $choice in
             1)
                 print_info "Will update existing release"
+                RELEASE_ACTION="update"
                 ;;
             2)
                 print_info "Deleting existing release..."
                 gh release delete "$tag" --yes
                 print_success "Release deleted"
+                RELEASE_ACTION="delete"
                 ;;
             3)
                 print_info "Exiting..."
@@ -97,6 +99,8 @@ check_release_exists() {
                 exit 1
                 ;;
         esac
+    else
+        RELEASE_ACTION="create"
     fi
 }
 
@@ -149,7 +153,7 @@ upload_packages() {
             print_info "Uploading macOS packages..."
             echo "$macos_packages" | while read -r package; do
                 if [ -f "$package" ]; then
-                    gh release upload "$tag" "$package"
+                    gh release upload "$tag" "$package" --clobber
                     print_success "Uploaded: $(basename "$package")"
                 fi
             done
@@ -187,8 +191,12 @@ upload_packages() {
     # Upload documentation
     if [ -d "$RELEASE_DIR/docs" ]; then
         print_info "Uploading documentation..."
-        gh release upload "$tag" "$RELEASE_DIR/docs" --recursive
-        print_success "Documentation uploaded"
+        find "$RELEASE_DIR/docs" -type f | while read -r doc_file; do
+            if [ -f "$doc_file" ]; then
+                gh release upload "$tag" "$doc_file"
+                print_success "Documentation uploaded: $(basename "$doc_file")"
+            fi
+        done
     fi
     
     # Upload checksums
@@ -302,12 +310,27 @@ main() {
     fi
     
     # Check if release exists (unless forcing)
+    RELEASE_ACTION="create"
     if [ "$force_upload" = false ]; then
         check_release_exists
     fi
     
-    # Create or update release
-    create_release
+    # Handle release creation based on user choice
+    case "$RELEASE_ACTION" in
+        "create")
+            create_release
+            ;;
+        "update")
+            print_info "Using existing release v$VERSION"
+            ;;
+        "delete")
+            create_release
+            ;;
+        *)
+            print_error "Invalid release action: $RELEASE_ACTION"
+            exit 1
+            ;;
+    esac
     
     # Upload packages
     upload_packages
