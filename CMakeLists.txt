@@ -354,7 +354,7 @@ if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
-    set(CPACK_PACKAGE_CONTACT "support@example.com")
+    set(CPACK_PACKAGE_CONTACT "support@blburns.com")
     
     include(CPack)
     
@@ -366,7 +366,7 @@ elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Linux")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
-    set(CPACK_PACKAGE_CONTACT "support@example.com")
+    set(CPACK_PACKAGE_CONTACT "support@blburns.com")
     
     # DEB specific settings
     set(CPACK_DEBIAN_PACKAGE_NAME "ssmtp-mailer")
@@ -400,7 +400,7 @@ elseif(PLATFORM_WINDOWS AND BUILD_SHARED_LIBS)
     # NSIS specific settings
     set(CPACK_NSIS_DISPLAY_NAME "ssmtp-mailer ${PROJECT_VERSION}")
     set(CPACK_NSIS_PACKAGE_NAME "ssmtp-mailer")
-    set(CPACK_NSIS_CONTACT "support@example.com")
+    set(CPACK_NSIS_CONTACT "support@blburns.com")
     set(CPACK_NSIS_URL "https://github.com/ssmtp-mailer/ssmtp-mailer")
     set(CPACK_NSIS_ENABLE_DIRECTORY_PAGE ON)
     set(CPACK_NSIS_MODIFY_PATH ON)
