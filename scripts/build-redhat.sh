@@ -134,6 +134,7 @@ check_dependencies() {
     # Install SSL development libraries
     local ssl_packages=(
         "openssl-devel"
+        "libcrypto-devel"
     )
     
     # Install JSON and HTTP libraries
