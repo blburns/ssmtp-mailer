@@ -289,6 +289,15 @@ install(TARGETS ssmtp-mailer ssmtp-mailer-lib
 
 install(DIRECTORY include/ DESTINATION include)
 
+# Install OAuth2 helper tools
+install(DIRECTORY tools/oauth2-helper/ DESTINATION share/ssmtp-mailer/oauth2-helper)
+
+# Install documentation
+install(DIRECTORY docs/ DESTINATION share/ssmtp-mailer/docs)
+
+# Install license and readme
+install(FILES LICENSE README.md DESTINATION share/ssmtp-mailer)
+
 # Platform-specific install paths
 if(PLATFORM_MACOS)
     # macOS install paths
@@ -349,6 +358,34 @@ if(PLATFORM_MACOS AND BUILD_SHARED_LIBS)
     
     include(CPack)
     
+# Linux package generation
+elseif(PLATFORM_LINUX AND BUILD_SHARED_LIBS)
+    # Create Linux packages (DEB, RPM, TGZ)
+    set(CPACK_GENERATOR "DEB;RPM;TGZ")
+    set(CPACK_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Linux")
+    set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
+    set(CPACK_PACKAGE_CONTACT "support@example.com")
+    
+    # DEB specific settings
+    set(CPACK_DEBIAN_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libssl3, libcurl4, libjsoncpp25")
+    set(CPACK_DEBIAN_PACKAGE_SECTION "mail")
+    set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+    set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/ssmtp-mailer/ssmtp-mailer")
+    
+    # RPM specific settings
+    set(CPACK_RPM_PACKAGE_NAME "ssmtp-mailer")
+    set(CPACK_RPM_PACKAGE_REQUIRES "openssl, libcurl, jsoncpp")
+    set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
+    set(CPACK_RPM_PACKAGE_URL "https://github.com/ssmtp-mailer/ssmtp-mailer")
+    
+    # TGZ specific settings
+    set(CPACK_TGZ_PACKAGE_NAME "ssmtp-mailer-${PROJECT_VERSION}")
+    
+    include(CPack)
+
 # Windows package generation
 elseif(PLATFORM_WINDOWS AND BUILD_SHARED_LIBS)
     # Create Windows installer
@@ -357,7 +394,7 @@ elseif(PLATFORM_WINDOWS AND BUILD_SHARED_LIBS)
     set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple SMTP Mailer for Windows")
     set(CPACK_PACKAGE_VENDOR "ssmtp-mailer")
-    set(CPACK_PACKAGE_CONTACT "support@example.com")
+    set(CPACK_PACKAGE_CONTACT "support@blburns.com")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "ssmtp-mailer")
     
     # NSIS specific settings
