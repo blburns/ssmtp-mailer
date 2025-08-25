@@ -130,6 +130,14 @@ package-freebsd: build
 	@echo "Building FreeBSD package with FreeBSD script..."
 	./scripts/build-freebsd.sh --package
 
+# Generic package (for unsupported distributions)
+package-generic: build
+	@echo "Building generic package for unsupported distribution..."
+	@mkdir -p $(DIST_DIR)
+	cd $(BUILD_DIR) && cpack -G TGZ
+	mv $(BUILD_DIR)/$(PROJECT_NAME)-$(VERSION)-*.tar.gz $(DIST_DIR)/
+	@echo "Generic package created: $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION)-*.tar.gz"
+
 # Package DMG (macOS only)
 package-dmg: build
 ifeq ($(PLATFORM),macos)
@@ -145,8 +153,57 @@ endif
 package: 
 ifeq ($(PLATFORM),macos)
 	$(MAKE) package-dmg
+else ifeq ($(PLATFORM),linux)
+	@echo "Detecting Linux distribution for package building..."
+	@if [ -f /etc/debian_version ] || ( [ -f /etc/os-release ] && grep -q "debian\|ubuntu\|mint\|pop\|elementary\|zorin\|deepin" /etc/os-release ); then \
+		echo "Detected Debian-based distribution, building DEB package..."; \
+		$(MAKE) package-deb; \
+	elif [ -f /etc/redhat-release ] || ( [ -f /etc/os-release ] && grep -q "rhel\|centos\|fedora\|rocky\|alma\|amazon\|oracle\|scientific" /etc/os-release ); then \
+		echo "Detected Red Hat-based distribution, building RPM package..."; \
+		$(MAKE) package-rpm; \
+	elif [ -f /etc/arch-release ] || ( [ -f /etc/os-release ] && grep -q "arch\|manjaro\|endeavour\|garuda" /etc/os-release ); then \
+		echo "Detected Arch-based distribution, building generic package..."; \
+		$(MAKE) package-generic; \
+	elif [ -f /etc/alpine-release ] || ( [ -f /etc/os-release ] && grep -q "alpine" /etc/os-release ); then \
+		echo "Detected Alpine Linux, building generic package..."; \
+		$(MAKE) package-generic; \
+	elif [ -f /etc/os-release ] && grep -q "opensuse\|suse\|leap\|tumbleweed" /etc/os-release; then \
+		echo "Detected openSUSE/SUSE distribution, building RPM package..."; \
+		$(MAKE) package-rpm; \
+	elif [ -f /etc/os-release ] && grep -q "gentoo" /etc/os-release; then \
+		echo "Detected Gentoo distribution, building generic package..."; \
+		$(MAKE) package-generic; \
+	else \
+		echo "Unknown Linux distribution, attempting both RPM and DEB..."; \
+		$(MAKE) package-rpm package-deb; \
+	fi
 else
-	$(MAKE) package-rpm package-deb
+	@echo "Platform $(PLATFORM) not supported for packaging"
+endif
+
+# Detect Linux distribution
+detect-distro:
+ifeq ($(PLATFORM),linux)
+	@echo "Detecting Linux distribution..."
+	@if [ -f /etc/debian_version ]; then \
+		echo "Distribution: Debian/Ubuntu (detected via /etc/debian_version)"; \
+	elif [ -f /etc/redhat-release ]; then \
+		echo "Distribution: Red Hat-based (detected via /etc/redhat-release)"; \
+		cat /etc/redhat-release; \
+	elif [ -f /etc/arch-release ]; then \
+		echo "Distribution: Arch Linux (detected via /etc/arch-release)"; \
+	elif [ -f /etc/alpine-release ]; then \
+		echo "Distribution: Alpine Linux (detected via /etc/alpine-release)"; \
+	elif [ -f /etc/os-release ]; then \
+		echo "Distribution: Detected via /etc/os-release"; \
+		grep "^PRETTY_NAME=" /etc/os-release | cut -d'"' -f2; \
+		grep "^ID=" /etc/os-release | cut -d'=' -f2; \
+		grep "^VERSION_ID=" /etc/os-release | cut -d'=' -f2; \
+	else \
+		echo "Distribution: Unknown (no standard release files found)"; \
+	fi
+else
+	@echo "Not a Linux platform"
 endif
 
 # Platform-specific build scripts
@@ -394,6 +451,7 @@ ifeq ($(PLATFORM),macos)
 else
 	@echo "  package-rpm      - Build RPM package (Red Hat/CentOS/Fedora)"
 	@echo "  package-deb      - Build DEB package (Debian/Ubuntu)"
+	@echo "  package-generic  - Build generic TGZ package (unsupported distributions)"
 endif
 	@echo ""
 	@echo "🏗️  ARCHITECTURE-SPECIFIC BUILDS:"
@@ -416,6 +474,9 @@ endif
 	@echo ""
 	@echo "📚 DEPENDENCIES:"
 	@echo "  deps             - Install required dependencies for current platform"
+	@echo ""
+	@echo "🔍 SYSTEM INFO:"
+	@echo "  detect-distro    - Detect and display Linux distribution information"
 ifeq ($(PLATFORM),linux)
 	@echo ""
 	@echo "🐳 DOCKER:"
