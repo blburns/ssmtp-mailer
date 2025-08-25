@@ -7,13 +7,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Platform detection
 if(APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS deployment version" FORCE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum macOS deployment version" FORCE)
     # Allow command line override of architectures
     if(NOT DEFINED CMAKE_OSX_ARCHITECTURES)
         set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for macOS" FORCE)
     endif()
     set(PLATFORM_MACOS TRUE)
-    message(STATUS "Building for macOS (Big Sur 11.0+) with architectures: ${CMAKE_OSX_ARCHITECTURES}")
+    message(STATUS "Building for macOS (Monterey 12.0+) with architectures: ${CMAKE_OSX_ARCHITECTURES}")
 elseif(UNIX AND NOT APPLE)
     set(PLATFORM_LINUX TRUE)
     message(STATUS "Building for Linux")
@@ -37,6 +37,7 @@ option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" OFF)
 option(ENABLE_LOGGING "Enable logging" ON)
 option(ENABLE_SSL "Enable SSL/TLS support" ON)
+option(USE_SYSTEM_LIBS "Use system libraries instead of Homebrew" OFF)
 
 # Set output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -48,7 +49,16 @@ find_package(PkgConfig REQUIRED)
 
 # Find OpenSSL
 if(ENABLE_SSL)
-    find_package(OpenSSL REQUIRED)
+    if(USE_SYSTEM_LIBS)
+        # Try to find system OpenSSL first
+        find_package(OpenSSL QUIET)
+        if(NOT OpenSSL_FOUND)
+            # Fall back to Homebrew OpenSSL
+            find_package(OpenSSL REQUIRED)
+        endif()
+    else()
+        find_package(OpenSSL REQUIRED)
+    endif()
 endif()
 
 # Find jsoncpp for JSON parsing
@@ -114,10 +124,10 @@ if(PLATFORM_MACOS)
     
     # Enable universal binary support for Intel + Apple Silicon
     if(CMAKE_OSX_ARCHITECTURES MATCHES ".*arm64.*")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -target arm64-apple-macos11.0")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -target arm64-apple-macos12.0")
     endif()
     if(CMAKE_OSX_ARCHITECTURES MATCHES ".*x86_64.*")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -target x86_64-apple-macos11.0")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -target x86_64-apple-macos12.0")
     endif()
     
 elseif(PLATFORM_LINUX)
@@ -225,12 +235,26 @@ target_link_libraries(ssmtp-mailer
     ${PLATFORM_LIBRARIES}
 )
 
+# Add linker flags to suppress dylib warnings on macOS
+if(PLATFORM_MACOS)
+    set_target_properties(ssmtp-mailer PROPERTIES
+        LINK_FLAGS "-Wl,-w"
+    )
+endif()
+
 target_link_libraries(ssmtp-mailer-lib
     ${OPENSSL_LIBRARIES}
     ${JSONCPP_LIBRARIES}
     ${CURL_LIBRARIES}
     ${PLATFORM_LIBRARIES}
 )
+
+# Add linker flags to suppress dylib warnings on macOS
+if(PLATFORM_MACOS)
+    set_target_properties(ssmtp-mailer-lib PROPERTIES
+        LINK_FLAGS "-Wl,-w"
+    )
+endif()
 
 # Compiler flags
 target_compile_options(ssmtp-mailer PRIVATE

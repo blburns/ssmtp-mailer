@@ -240,11 +240,9 @@ int main(int argc, char* argv[]) {
                 auto pending = mailer.getPendingEmails();
                 std::cout << "Pending emails: " << pending.size() << std::endl;
                 for (const auto& queued : pending) {
-                    if (queued.email) {
-                        std::string recipient = queued.email->getAllRecipients().empty() ? "none" : queued.email->getAllRecipients()[0];
-                        std::cout << "  - " << queued.email->from << " -> " << recipient 
-                                  << " (Priority: " << static_cast<int>(queued.priority) << ")" << std::endl;
-                    }
+                    std::string recipient = queued.to_addresses.empty() ? "none" : queued.to_addresses[0];
+                    std::cout << "  - " << queued.from_address << " -> " << recipient 
+                              << " (Priority: " << static_cast<int>(queued.priority) << ")" << std::endl;
                 }
                 return 0;
                 
@@ -252,11 +250,9 @@ int main(int argc, char* argv[]) {
                 auto failed = mailer.getFailedEmails();
                 std::cout << "Failed emails: " << failed.size() << std::endl;
                 for (const auto& queued : failed) {
-                    if (queued.email) {
-                        std::string recipient = queued.email->getAllRecipients().empty() ? "none" : queued.email->getAllRecipients()[0];
-                        std::cout << "  - " << queued.email->from << " -> " << recipient 
-                                  << " (Error: " << queued.last_error << ")" << std::endl;
-                    }
+                    std::string recipient = queued.to_addresses.empty() ? "none" : queued.to_addresses[0];
+                    std::cout << "  - " << queued.from_address << " -> " << recipient 
+                              << " (Error: " << queued.error_message << ")" << std::endl;
                 }
                 return 0;
                 

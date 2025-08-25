@@ -3,7 +3,7 @@
 #include "core/config/config_manager.hpp"
 #include "core/smtp/smtp_client.hpp"
 #include "core/queue/email_queue.hpp"
-#include "core/auth/auth_manager.hpp"
+// #include "core/auth/auth_manager.hpp"  // TODO: Implement AuthManager or use existing auth classes
 #include <memory>
 #include <stdexcept>
 
@@ -26,19 +26,19 @@ public:
     bool testConnection();
     
     // Queue management
-    void enqueue(const Email& email, QueuePriority priority = QueuePriority::NORMAL);
+    void enqueue(const Email& email, EmailPriority priority = EmailPriority::NORMAL);
     void startQueue();
     void stopQueue();
     bool isQueueRunning() const;
     size_t getQueueSize() const;
-    std::vector<QueuedEmail> getPendingEmails() const;
-    std::vector<QueuedEmail> getFailedEmails() const;
+    std::vector<QueueItem> getPendingEmails() const;
+    std::vector<QueueItem> getFailedEmails() const;
     
 private:
     std::unique_ptr<ConfigManager> config_manager_;
     std::unique_ptr<SMTPClient> smtp_client_;
     std::unique_ptr<EmailQueue> email_queue_;
-    std::unique_ptr<AuthManager> auth_manager_;
+    // std::unique_ptr<AuthManager> auth_manager_;  // TODO: Implement AuthManager
     std::string last_error_;
     bool is_configured_;
     
@@ -82,7 +82,7 @@ bool Mailer::testConnection() {
 }
 
 // Queue management methods
-void Mailer::enqueue(const Email& email, QueuePriority priority) {
+void Mailer::enqueue(const Email& email, EmailPriority priority) {
     pImpl->enqueue(email, priority);
 }
 
@@ -102,11 +102,11 @@ size_t Mailer::getQueueSize() const {
     return pImpl->getQueueSize();
 }
 
-std::vector<QueuedEmail> Mailer::getPendingEmails() const {
+std::vector<QueueItem> Mailer::getPendingEmails() const {
     return pImpl->getPendingEmails();
 }
 
-std::vector<QueuedEmail> Mailer::getFailedEmails() const {
+std::vector<QueueItem> Mailer::getFailedEmails() const {
     return pImpl->getFailedEmails();
 }
 
@@ -124,7 +124,7 @@ Mailer::Impl::Impl(const std::string& config_file)
     
             try {
             smtp_client_ = std::make_unique<SMTPClient>(*config_manager_);
-            auth_manager_ = std::make_unique<AuthManager>();
+            // auth_manager_ = std::make_unique<AuthManager>();  // TODO: Implement AuthManager
             email_queue_ = std::make_unique<EmailQueue>();
             
             // Set up the queue callback
@@ -271,7 +271,7 @@ bool Mailer::Impl::validateEmailPermissions(const Email& email) {
 }
 
 // Queue management implementations
-void Mailer::Impl::enqueue(const Email& email, QueuePriority priority) {
+void Mailer::Impl::enqueue(const Email& email, EmailPriority priority) {
     if (!email_queue_) {
         last_error_ = "Email queue not available";
         return;
@@ -306,12 +306,12 @@ size_t Mailer::Impl::getQueueSize() const {
     return email_queue_ ? email_queue_->size() : 0;
 }
 
-std::vector<QueuedEmail> Mailer::Impl::getPendingEmails() const {
-    return email_queue_ ? email_queue_->getPendingEmails() : std::vector<QueuedEmail>{};
+std::vector<QueueItem> Mailer::Impl::getPendingEmails() const {
+    return email_queue_ ? email_queue_->getPendingEmails() : std::vector<QueueItem>{};
 }
 
-std::vector<QueuedEmail> Mailer::Impl::getFailedEmails() const {
-    return email_queue_ ? email_queue_->getFailedEmails() : std::vector<QueuedEmail>{};
+std::vector<QueueItem> Mailer::Impl::getFailedEmails() const {
+    return email_queue_ ? email_queue_->getFailedEmails() : std::vector<QueueItem>{};
 }
 
 SMTPResult Mailer::Impl::sendEmailDirect(const Email& email) {

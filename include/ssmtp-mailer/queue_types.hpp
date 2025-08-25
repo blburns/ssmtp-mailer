@@ -46,6 +46,8 @@ struct QueueItem {
     EmailStatus status;
     std::chrono::system_clock::time_point created_at;
     std::chrono::system_clock::time_point scheduled_for;
+    std::chrono::system_clock::time_point last_attempt;
+    std::chrono::seconds retry_delay;
     int retry_count;
     int max_retries;
     std::string error_message;
@@ -59,6 +61,8 @@ struct QueueItem {
         : from_address(from), to_addresses(to), subject(subj), body(body_text),
           priority(EmailPriority::NORMAL), status(EmailStatus::PENDING),
           created_at(std::chrono::system_clock::now()),
+          last_attempt(std::chrono::system_clock::now()),
+          retry_delay(std::chrono::seconds(60)),
           retry_count(0), max_retries(3) {}
 };
 

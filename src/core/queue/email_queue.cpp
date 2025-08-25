@@ -29,7 +29,10 @@ void EmailQueue::enqueue(const Email* email, EmailPriority priority) {
         return;
     }
     
-    QueueItem queued_email(email, priority);
+    QueueItem queued_email(email->from, email->to, email->subject, email->body);
+    queued_email.priority = priority;
+    queued_email.html_body = email->html_body;
+    queued_email.attachments = email->attachments;
     email_queue_.push(queued_email);
     
     Logger& logger = Logger::getInstance();
@@ -127,16 +130,16 @@ void EmailQueue::setSendCallback(SendCallback callback) {
     send_callback_ = callback;
 }
 
-std::vector<QueuedEmail> EmailQueue::getPendingEmails() const {
+std::vector<QueueItem> EmailQueue::getPendingEmails() const {
     std::lock_guard<std::mutex> lock(queue_mutex_);
     
-    std::vector<QueuedEmail> pending_emails;
-    std::priority_queue<QueuedEmail, std::vector<QueuedEmail>, 
-                       std::function<bool(const QueuedEmail&, const QueuedEmail&)>> temp_queue = email_queue_;
+    std::vector<QueueItem> pending_emails;
+    std::priority_queue<QueueItem, std::vector<QueueItem>, 
+                       std::function<bool(const QueueItem&, const QueueItem&)>> temp_queue = email_queue_;
     
     while (!temp_queue.empty()) {
-        QueuedEmail email = temp_queue.top();
-        if (email.status == QueueStatus::PENDING || email.status == QueueStatus::RETRY) {
+        QueueItem email = temp_queue.top();
+        if (email.status == EmailStatus::PENDING || email.status == EmailStatus::RETRY) {
             pending_emails.push_back(email);
         }
         temp_queue.pop();
@@ -145,16 +148,16 @@ std::vector<QueuedEmail> EmailQueue::getPendingEmails() const {
     return pending_emails;
 }
 
-std::vector<QueuedEmail> EmailQueue::getFailedEmails() const {
+std::vector<QueueItem> EmailQueue::getFailedEmails() const {
     std::lock_guard<std::mutex> lock(queue_mutex_);
     
-    std::vector<QueuedEmail> failed_emails;
-    std::priority_queue<QueuedEmail, std::vector<QueuedEmail>, 
-                       std::function<bool(const QueuedEmail&, const QueuedEmail&)>> temp_queue = email_queue_;
+    std::vector<QueueItem> failed_emails;
+    std::priority_queue<QueueItem, std::vector<QueueItem>, 
+                       std::function<bool(const QueueItem&, const QueueItem&)>> temp_queue = email_queue_;
     
     while (!temp_queue.empty()) {
-        QueuedEmail email = temp_queue.top();
-        if (email.status == QueueStatus::FAILED) {
+        QueueItem email = temp_queue.top();
+        if (email.status == EmailStatus::FAILED) {
             failed_emails.push_back(email);
         }
         temp_queue.pop();
@@ -178,13 +181,13 @@ void EmailQueue::workerLoop() {
         }
         
         // Process emails in batches
-        std::vector<QueuedEmail> batch;
+        std::vector<QueueItem> batch;
         for (size_t i = 0; i < batch_size_ && !email_queue_.empty(); ++i) {
-            QueuedEmail email = email_queue_.top();
+            QueueItem email = email_queue_.top();
             email_queue_.pop();
             
             // Check if email is ready for processing
-            if (email.status == QueueStatus::RETRY) {
+            if (email.status == EmailStatus::RETRY) {
                 auto now = std::chrono::system_clock::now();
                 auto time_since_last_attempt = std::chrono::duration_cast<std::chrono::seconds>(
                     now - email.last_attempt);
@@ -217,33 +220,42 @@ void EmailQueue::workerLoop() {
     logger.debug("EmailQueue worker loop ended");
 }
 
-void EmailQueue::processEmail(QueuedEmail& queued_email) {
+void EmailQueue::processEmail(QueueItem& queued_email) {
     Logger& logger = Logger::getInstance();
     
     if (!send_callback_) {
         logger.error("No send callback set, cannot process email");
-        queued_email.status = QueueStatus::FAILED;
-        queued_email.last_error = "No send callback configured";
+        queued_email.status = EmailStatus::FAILED;
+        queued_email.error_message = "No send callback configured";
         total_failed_++;
         return;
     }
     
-    queued_email.status = QueueStatus::PROCESSING;
+    queued_email.status = EmailStatus::PROCESSING;
     queued_email.last_attempt = std::chrono::system_clock::now();
     
-    logger.debug("Processing email from: " + queued_email.email->from + 
-                " to: " + (queued_email.email->getAllRecipients().empty() ? "none" : queued_email.email->getAllRecipients()[0]));
+    logger.debug("Processing email from: " + queued_email.from_address + 
+                " to: " + (queued_email.to_addresses.empty() ? "none" : queued_email.to_addresses[0]));
     
     try {
-        SMTPResult result = send_callback_(queued_email.email);
+        // Create Email object from QueueItem for the callback
+        Email email;
+        email.from = queued_email.from_address;
+        email.to = queued_email.to_addresses;
+        email.subject = queued_email.subject;
+        email.body = queued_email.body;
+        email.html_body = queued_email.html_body;
+        email.attachments = queued_email.attachments;
+        
+        SMTPResult result = send_callback_(&email);
         
         if (result.success) {
-            queued_email.status = QueueStatus::SENT;
+            queued_email.status = EmailStatus::SENT;
             total_processed_++;
-            logger.info("Email sent successfully from: " + queued_email.email->from);
+            logger.info("Email sent successfully from: " + queued_email.from_address);
         } else {
             if (shouldRetry(queued_email)) {
-                queued_email.status = QueueStatus::RETRY;
+                queued_email.status = EmailStatus::RETRY;
                 updateRetryInfo(queued_email);
                 total_retries_++;
                 
@@ -251,33 +263,33 @@ void EmailQueue::processEmail(QueuedEmail& queued_email) {
                 std::lock_guard<std::mutex> lock(queue_mutex_);
                 email_queue_.push(queued_email);
                 
-                logger.warning("Email queued for retry from: " + queued_email.email->from + 
+                logger.warning("Email queued for retry from: " + queued_email.from_address + 
                               " (attempt " + std::to_string(queued_email.retry_count) + "/" + 
                               std::to_string(queued_email.max_retries) + ")");
             } else {
-                queued_email.status = QueueStatus::FAILED;
-                queued_email.last_error = result.error_message;
+                queued_email.status = EmailStatus::FAILED;
+                queued_email.error_message = result.error_message;
                 total_failed_++;
                 
-                logger.error("Email failed permanently from: " + queued_email.email->from + 
+                logger.error("Email failed permanently from: " + queued_email.from_address + 
                             ": " + result.error_message);
             }
         }
     } catch (const std::exception& e) {
-        queued_email.status = QueueStatus::FAILED;
-        queued_email.last_error = "Exception: " + std::string(e.what());
+        queued_email.status = EmailStatus::FAILED;
+        queued_email.error_message = "Exception: " + std::string(e.what());
         total_failed_++;
         
-        logger.error("Exception while processing email from: " + queued_email.email->from + 
+        logger.error("Exception while processing email from: " + queued_email.from_address + 
                     ": " + e.what());
     }
 }
 
-bool EmailQueue::shouldRetry(const QueuedEmail& queued_email) const {
+bool EmailQueue::shouldRetry(const QueueItem& queued_email) const {
     return queued_email.retry_count < queued_email.max_retries;
 }
 
-void EmailQueue::updateRetryInfo(QueuedEmail& queued_email) {
+void EmailQueue::updateRetryInfo(QueueItem& queued_email) {
     queued_email.retry_count++;
     
     // Exponential backoff: double the delay for each retry
@@ -291,14 +303,14 @@ void EmailQueue::updateRetryInfo(QueuedEmail& queued_email) {
     }
 }
 
-bool EmailQueue::comparePriority(const QueuedEmail& a, const QueuedEmail& b) {
+bool EmailQueue::comparePriority(const QueueItem& a, const QueueItem& b) {
     // Higher priority values come first
     if (a.priority != b.priority) {
         return a.priority < b.priority;
     }
     
     // For same priority, older emails come first (FIFO)
-    return a.queued_at > b.queued_at;
+    return a.created_at > b.created_at;
 }
 
 } // namespace ssmtp_mailer

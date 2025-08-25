@@ -49,7 +49,6 @@ $(BUILD_DIR):
 
 # Build using CMake
 build: $(BUILD_DIR)
-	mkdir -p build
 	cd $(BUILD_DIR) && cmake .. && make -j$(PARALLEL_JOBS)
 
 # Clean build
