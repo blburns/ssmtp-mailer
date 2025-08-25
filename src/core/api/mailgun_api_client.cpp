@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <iomanip>
 
 namespace ssmtp_mailer {
 

@@ -173,6 +173,10 @@ private:
     APIClientConfig config_;
     std::string buildRequestBody(const Email& email);
     std::map<std::string, std::string> buildHeaders();
+    std::string getDomainFromConfig() const;
+    std::string extractMessageId(const std::string& response_body);
+    std::string urlEncode(const std::string& str);
+    std::string base64Encode(const std::string& str);
 };
 
 /**
@@ -192,6 +196,10 @@ private:
     APIClientConfig config_;
     std::string buildRequestBody(const Email& email);
     std::map<std::string, std::string> buildHeaders();
+    std::string getRegionFromConfig() const;
+    std::string getConfigurationSetFromConfig() const;
+    std::string extractMessageId(const std::string& response_body);
+    std::string escapeJson(const std::string& str);
 };
 
 /**
