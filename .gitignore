@@ -80,10 +80,6 @@ coverage/
 # Valgrind output
 *.valgrind
 
-# Core dumps
-core
-core.*
-
 # SSL certificates and keys (for security)
 *.pem
 *.key
