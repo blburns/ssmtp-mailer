@@ -1,0 +1,26 @@
+# OAuth2 Helper Tools Requirements
+# Python dependencies for ssmtp-mailer OAuth2 authentication helpers
+
+# HTTP requests library for OAuth2 token exchange
+requests>=2.25.0
+
+# Optional: Additional OAuth2 providers
+# These are not required for basic functionality but may be needed for specific providers
+
+# For Google OAuth2 (if using google-auth library)
+# google-auth>=2.0.0
+# google-auth-oauthlib>=0.4.0
+
+# For Microsoft Graph (if using msal library)
+# msal>=1.20.0
+
+# For AWS (if using boto3)
+# boto3>=1.26.0
+
+# For SendGrid (if using sendgrid library)
+# sendgrid>=6.9.0
+
+# For development and testing
+# pytest>=6.0.0
+# black>=22.0.0
+# flake8>=4.0.0

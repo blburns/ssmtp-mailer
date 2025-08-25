@@ -1,545 +1,463 @@
-# ssmtp-mailer
+# 🚀 ssmtp-mailer
 
-**Simple SMTP Mailer** - A smart host MTA (Mail Transfer Agent) for multiple domains with flexible authentication and routing.
+**High-performance SMTP mailer with queue management and OAuth2 support**
 
-## Overview
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Platform: macOS](https://img.shields.io/badge/Platform-macOS-blue.svg)](https://www.apple.com/macos/)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-green.svg)](https://www.linux.org/)
+[![Language: C++](https://img.shields.io/badge/Language-C++-orange.svg)](https://isocpp.org/)
 
-ssmtp-mailer is a lightweight, high-performance mailer application designed for Linux, macOS, and BSD platforms. It serves as a smart host MTA that can handle multiple domain-specific SMTP relay accounts, making it ideal for web applications that need to send mail from different domains using various service accounts.
+## 📋 Table of Contents
 
-## Documentation
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [Development](#-development)
+- [Documentation](#-documentation)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-- [DNS Setup Guide](docs/dns-setup.md)
-- [Linux Build Guide](docs/linux-build.md)
-- [macOS Build Guide](docs/macos-build.md)
-- [Windows Build Guide](docs/windows-build.md)
-- [Relay Architecture](docs/relay-architecture.md)
-- [Relay Setup Guide](docs/relay-setup-guide.md)
-- [SSL Setup with Certbot](docs/ssl-setup-with-certbot.md)
-- [SSL Quick Reference](docs/ssl-quick-reference.md)
+## ✨ Features
 
-## Key Features
+### 🚀 **High Performance**
+- **Optimized C++ Implementation**: Built for speed and efficiency
+- **Parallel Processing**: Multi-threaded email queue processing
+- **Memory Efficient**: Smart memory management and resource handling
 
-- **Multi-Domain Support**: Handle multiple domains with different SMTP relay accounts
-- **Flexible Authentication**: Support for OAuth2, username/password, and API key authentication
-- **Smart Routing**: Map from-addresses to appropriate SMTP accounts based on domain
-- **Template Addresses**: Support for dynamic address patterns like `contact-{type}@domain.com`
-- **SSL/TLS Support**: Secure SMTP connections with OpenSSL and automatic certificate management via Certbot
-- **Configuration Management**: Modular configuration system with `/etc/ssmtp-mailer/conf.d/` support
-- **Cross-Platform**: Build for Linux, macOS (Big Sur 11.0+), and BSD platforms
-- **Universal Binary Support**: Native support for both Intel and Apple Silicon Macs
-- **Package Support**: RPM, DEB, and DMG package generation
+### 📧 **Advanced SMTP Support**
+- **Full SMTP Protocol**: Complete RFC compliance
+- **Multiple Encryption**: STARTTLS, SSL, and unencrypted connections
+- **Authentication Methods**: PLAIN, LOGIN, CRAM-MD5, and OAuth2
+- **Connection Pooling**: Efficient connection reuse and management
 
-## Use Cases
+### 🔐 **OAuth2 Integration**
+- **Google Service Accounts**: Native Gmail API support
+- **Microsoft Graph**: Office 365 and Outlook integration
+- **Secure Token Management**: Automatic token refresh and storage
+- **Multiple Providers**: Extensible authentication framework
 
-- **Web Applications**: Send confirmation emails, notifications, and alerts
-- **Multi-Tenant Systems**: Handle mail for multiple domains from a single server
-- **Service Accounts**: Use Gmail, Office 365, or other SMTP providers as relay accounts
-- **Distribution Lists**: Send to multiple recipients while maintaining proper from-addresses
-- **Development/Testing**: Local mail testing without setting up full mail infrastructure
-- **macOS Development**: Build and test mail functionality on macOS systems
+### 📊 **Queue Management**
+- **Persistent Storage**: Reliable email queuing with disk persistence
+- **Priority Handling**: Configurable email priority levels
+- **Retry Logic**: Intelligent retry with exponential backoff
+- **Dead Letter Queue**: Failed email handling and analysis
 
-## Architecture
+### 🛡️ **Security & Reliability**
+- **SSL/TLS Support**: Modern encryption standards
+- **Certificate Validation**: Proper SSL certificate verification
+- **Input Sanitization**: Protection against injection attacks
+- **Logging & Monitoring**: Comprehensive audit trails
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Application   │───▶│  ssmtp-mailer    │───▶│  SMTP Server    │
-│   (Web App)     │    │  (Smart Host)    │    │  (Gmail, etc.)  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌──────────────────┐
-                       │  Configuration   │
-                       │  Management      │
-                       └──────────────────┘
-```
-
-## Installation
+## 🚀 Quick Start
 
 ### Prerequisites
+- **macOS**: Big Sur 11.0+ or later
+- **Linux**: Ubuntu 20.04+, CentOS 8+, or compatible distributions
+- **C++ Compiler**: GCC 9+ or Clang 12+
+- **CMake**: 3.16 or later
 
-#### Linux
-- C++17 compatible compiler (GCC 7+, Clang 5+)
-- CMake 3.16+
-- OpenSSL development libraries
-- pkg-config
+### Quick Installation
 
-#### macOS (Big Sur 11.0+)
-- Xcode Command Line Tools (includes Clang and CMake)
-- Homebrew (recommended for OpenSSL)
-- OpenSSL 3.x (via Homebrew: `brew install openssl@3`)
-- CMake 3.16+ (via Homebrew: `brew install cmake`)
-
-### From Source
-
+#### macOS
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ssmtp-mailer.git
+git clone https://github.com/blburns/ssmtp-mailer.git
 cd ssmtp-mailer
 
 # Install dependencies
 make deps
 
-# Build and install
-make install
+# Build with auto-detected architecture
+make build-script
+
+# Create installer package
+make package-dmg
+
+# Install (double-click the DMG or use installer)
+sudo installer -pkg dist/ssmtp-mailer-*.pkg -target /
 ```
 
-### Platform-Specific Builds
+#### Linux
+```bash
+# Clone the repository
+git clone https://github.com/blburns/ssmtp-mailer.git
+cd ssmtp-mailer
+
+# Install dependencies
+make deps
+
+# Build
+make build
+
+# Create platform-specific package
+make package
+
+# Install
+sudo make install
+```
+
+### First Run
+```bash
+# Test installation
+ssmtp-mailer --version
+
+# View help
+ssmtp-mailer --help
+
+# Check configuration
+ssmtp-mailer --config-check
+```
+
+## 📦 Installation
+
+### Package Types
 
 #### macOS
-```bash
-# Build universal binary (Intel + Apple Silicon)
-make build-universal
-
-# Build for Intel Macs only
-make build-intel
-
-# Build for Apple Silicon Macs only
-make build-arm64
-
-# Create macOS DMG package
-make package-dmg
-```
+- **DMG Package**: Drag-and-drop installation with GUI
+- **PKG Installer**: Native macOS installer with post-install scripts
+- **Universal Binary**: Intel + Apple Silicon compatibility
 
 #### Linux
+- **DEB Package**: Debian/Ubuntu family distributions
+- **RPM Package**: Red Hat/CentOS/Fedora distributions
+- **Generic TGZ**: Arch, Alpine, Gentoo, and other distributions
+
+### Installation Methods
+
+#### Automated Installation
 ```bash
-# Build 32-bit version
-make build-32
+# macOS - Smart auto-detection
+make build-script && make package-dmg
 
-# Build 64-bit version
-make build-64
-
-# Build both architectures
-make build-multiarch
+# Linux - Smart OS detection
+make build && make package
 ```
 
-### Package Installation
-
-#### RPM (Red Hat/CentOS/Fedora)
+#### Manual Installation
 ```bash
-sudo rpm -i ssmtp-mailer-0.2.0-1.x86_64.rpm
+# Build from source
+make clean && make build
+
+# Install to system
+sudo make install
+
+# Create custom package
+make package-custom
 ```
 
-#### DEB (Debian/Ubuntu)
-```bash
-sudo dpkg -i ssmtp-mailer_0.2.0_amd64.deb
+### Installation Paths
+```
+/usr/local/bin/ssmtp-mailer          # Main executable
+/usr/local/lib/libssmtp-mailer.dylib # Shared library
+/usr/local/include/ssmtp-mailer/     # Header files
+/etc/ssmtp-mailer/                   # Configuration files
+/var/log/ssmtp-mailer/               # Log files
 ```
 
-#### DMG (macOS)
-```bash
-# Mount the DMG and drag the application to Applications folder
-# Or install via command line:
-sudo installer -pkg /Volumes/ssmtp-mailer-0.2.0/ssmtp-mailer.pkg -target /
-```
+## ⚙️ Configuration
 
-## Configuration
-
-### Main Configuration
-
-The main configuration file location depends on your platform:
-
-#### Linux
+### Main Configuration File
 ```ini
 # /etc/ssmtp-mailer/ssmtp-mailer.conf
-[global]
-default_hostname = localhost
-default_from = root@localhost
-config_dir = /etc/ssmtp-mailer/conf.d
-domains_dir = /etc/ssmtp-mailer/domains
-log_level = info
-log_file = /var/log/ssmtp-mailer.log
+
+[General]
+log_level = INFO
+log_file = /var/log/ssmtp-mailer/ssmtp-mailer.log
+max_log_size = 10
+max_log_files = 5
+
+[SMTP]
+default_server = smtp.gmail.com
+default_port = 587
+default_encryption = STARTTLS
+connection_timeout = 30
+auth_timeout = 10
+
+[Queue]
+max_queue_size = 1000
+retry_delay = 60
+max_retries = 3
+process_interval = 5
+
+[Security]
+verify_ssl = true
+min_tls_version = 1.2
 ```
 
-#### macOS
+### OAuth2 Configuration
 ```ini
-# /usr/local/etc/ssmtp-mailer/ssmtp-mailer.conf
-[global]
-default_hostname = localhost
-default_from = root@localhost
-config_dir = /usr/local/etc/ssmtp-mailer/conf.d
-domains_dir = /usr/local/etc/ssmtp-mailer/domains
-log_level = info
-log_file = /usr/local/var/log/ssmtp-mailer.log
+# /etc/ssmtp-mailer/auth/auth.conf
+
+[Service_Accounts]
+google_service_account_file = /path/to/service-account.json
+google_scopes = https://www.googleapis.com/auth/gmail.send
+
+microsoft_tenant_id = your-tenant-id
+microsoft_client_id = your-client-id
+microsoft_client_secret = your-client-secret
 ```
 
-### Domain Configuration
-
-Domain-specific settings in the appropriate `conf.d` directory:
-
+### Email Templates
 ```ini
-[domain:example.com]
-enabled = true
-smtp_server = smtp.gmail.com:587
-auth_method = oauth2
-service_account = noreply@example.com
-relay_account = mail-relay@example.com
+# /etc/ssmtp-mailer/templates/email.conf
 
-[domain:another-domain.com]
-enabled = true
-smtp_server = smtp.office365.com:587
-auth_method = username_password
-service_account = notifications@another-domain.com
-relay_account = mail-service@another-domain.com
+[Templates]
+welcome_subject = Welcome to our service
+welcome_body = Thank you for joining our service!
+notification_subject = Important notification
+notification_body = You have an important notification.
 ```
 
-### User Configuration
+## 💻 Usage
 
-User account definitions:
+### Command Line Interface
 
-```ini
-[user:contact-legal@domain1.com]
-domain = domain1.com
-enabled = true
-can_send_from = true
-can_send_to = true
-allowed_recipients = ["*@domain1.com", "customers@*"]
-
-[user:contact-{type}@dreamlikenetworks.com]
-domain = dreamlikenetworks.com
-enabled = true
-can_send_from = true
-can_send_to = true
-template = true
-allowed_types = ["legal", "privacy", "general", "support", "sales"]
-allowed_recipients = ["*@dreamlikenetworks.com", "partners@*"]
-```
-
-### Address Mapping
-
-Routing rules in the `mappings/` directory:
-
-```ini
-[route:contact-legal@domain1.com]
-from_addresses = ["contact-legal@domain1.com"]
-to_domains = ["domain1.com", "customers.*"]
-smtp_account = mailer@postal.domain1.com
-```
-
-## Usage
-
-### Command Line
-
+#### Basic Usage
 ```bash
 # Send a simple email
-ssmtp-mailer --from "contact-support@domain1.com" \
-             --to "customer@example.com" \
-             --subject "Support Request" \
-             --body "Thank you for contacting support."
+ssmtp-mailer send --to user@example.com --subject "Hello" --body "Message body"
 
-# Send with HTML content
-ssmtp-mailer --from "contact-legal@dreamlikenetworks.com" \
-             --to "partner@company.com" \
-             --subject "Legal Notice" \
-             --html-body "<h1>Legal Notice</h1><p>Important information...</p>"
+# Send with attachments
+ssmtp-mailer send --to user@example.com --subject "Report" --body "See attached" --attach report.pdf
 
 # Send to multiple recipients
-ssmtp-mailer --from "noreply@domain1.com" \
-             --to "user1@example.com,user2@example.com" \
-             --subject "Newsletter" \
-             --body "Monthly newsletter content..."
+ssmtp-mailer send --to user1@example.com,user2@example.com --subject "Group message" --body "Hello everyone"
+```
+
+#### Queue Management
+```bash
+# List queued emails
+ssmtp-mailer queue list
+
+# Show failed emails
+ssmtp-mailer queue failed
+
+# Retry failed emails
+ssmtp-mailer queue retry
+
+# Clear queue
+ssmtp-mailer queue clear
+```
+
+#### Configuration Management
+```bash
+# Validate configuration
+ssmtp-mailer config validate
+
+# Test SMTP connection
+ssmtp-mailer config test-connection
+
+# Show current settings
+ssmtp-mailer config show
 ```
 
 ### Programmatic Usage
 
+#### C++ API
 ```cpp
+#include <ssmtp-mailer/email.hpp>
 #include <ssmtp-mailer/mailer.hpp>
 
-int main() {
-    ssmtp_mailer::Mailer mailer;
-    
-    ssmtp_mailer::Email email;
-    email.from = "contact-support@domain1.com";
-    email.to = {"customer@example.com"};
-    email.subject = "Support Request";
-    email.body = "Thank you for contacting support.";
-    
-    mailer.send(email);
-    
-    return 0;
-}
+// Create email
+ssmtp_mailer::Email email;
+email.setFrom("sender@example.com");
+email.addTo("recipient@example.com");
+email.setSubject("Test Email");
+email.setBody("Hello from ssmtp-mailer!");
+
+// Send email
+ssmtp_mailer::Mailer mailer;
+mailer.send(email);
 ```
 
-## Building
+#### Python Bindings (Future)
+```python
+import ssmtp_mailer
 
-### Recommended Build (Using Specialized Scripts)
+# Create and send email
+email = ssmtp_mailer.Email(
+    from_addr="sender@example.com",
+    to_addrs=["recipient@example.com"],
+    subject="Python Test",
+    body="Hello from Python!"
+)
 
-```bash
-# Auto-detect platform and use appropriate build script
-make build-script
-
-# This automatically selects:
-# - macOS: build-macos.sh
-# - Ubuntu/Debian: build-debian.sh  
-# - Red Hat/CentOS/Fedora: build-redhat.sh
-# - FreeBSD: build-freebsd.sh
+mailer = ssmtp_mailer.Mailer()
+mailer.send(email)
 ```
 
-### Manual Build Script Selection
+## 🛠️ Development
 
+### Building from Source
+
+#### Prerequisites
 ```bash
-# Force specific build script regardless of platform
-make build-debian     # Debian/Ubuntu build script
-make build-redhat     # Red Hat build script
-make build-freebsd    # FreeBSD build script
-make build-macos      # macOS build script
+# macOS
+xcode-select --install
+brew install cmake openssl jsoncpp curl
+
+# Ubuntu/Debian
+sudo apt update
+sudo apt install build-essential cmake libssl-dev libjsoncpp-dev libcurl4-openssl-dev
+
+# CentOS/RHEL
+sudo yum groupinstall "Development Tools"
+sudo yum install cmake openssl-devel jsoncpp-devel libcurl-devel
 ```
 
-### Traditional CMake Build
-
+#### Build Commands
 ```bash
-# Standard CMake build
-make build
-```
+# Clean build
+make clean
 
-### Platform-Specific Builds
-
-#### macOS
-```bash
-# Universal binary (Intel + Apple Silicon)
-make build-universal
-
-# Intel Macs only
-make build-intel
-
-# Apple Silicon Macs only
-make build-arm64
-```
-
-#### Linux
-```bash
-# 32-bit version
-make build-32
-
-# 64-bit version
-make build-64
-
-# Both architectures
-make build-multiarch
-```
-
-### Package Building
-
-#### Recommended (Using Specialized Scripts)
-
-```bash
-# Auto-detect platform and build appropriate package
-make package-script
-
-# This automatically builds:
-# - macOS: DMG package
-# - Ubuntu/Debian: DEB package
-# - Red Hat/CentOS/Fedora: RPM package
-# - FreeBSD: TGZ package
-```
-
-#### Manual Package Selection
-
-```bash
-# Force specific package type regardless of platform
-make package-debian   # Build DEB package
-make package-redhat   # Build RPM package
-make package-freebsd  # Build FreeBSD package
-make package-dmg      # Build macOS DMG package
-```
-
-#### Traditional Package Building
-
-```bash
-# Build platform-specific packages using CMake
-make package
-
-# On macOS: creates DMG package
-# On Linux: creates RPM and DEB packages
-```
-
-### Development
-
-```bash
 # Debug build
 make debug
 
 # Release build
 make release
 
-# Static analysis
-make analyze
+# Build with tests
+make build && make test
 
+# Build specific architecture (macOS)
+make build-intel      # Intel only
+make build-arm64      # Apple Silicon only
+make build-universal  # Both architectures
+```
+
+#### Development Tools
+```bash
 # Code formatting
 make format
 
 # Style checking
 make check-style
+
+# Static analysis
+make analyze
+
+# Run tests
+make test
+
+# Build documentation
+make docs
 ```
 
-## Build Scripts
-
-The project includes specialized build scripts for different platforms that handle dependency installation, platform detection, and package creation automatically.
-
-### Available Build Scripts
-
-- **`scripts/build-debian.sh`** - Debian/Ubuntu systems with DEB package support
-- **`scripts/build-redhat.sh`** - Red Hat/CentOS/Fedora systems with RPM package support
-- **`scripts/build-freebsd.sh`** - FreeBSD systems with TGZ package support
-- **`scripts/build-macos.sh`** - macOS systems with DMG package support
-
-### Script Features
-
-- **Automatic dependency installation** for each platform
-- **Platform detection** and appropriate tool selection
-- **Package creation** with platform-specific formats
-- **Comprehensive error handling** and user feedback
-- **Cross-compilation support** for different architectures
-
-### Usage Examples
-
-```bash
-# Direct script usage
-./scripts/build-debian.sh --package
-./scripts/build-redhat.sh --package
-./scripts/build-freebsd.sh --package
-
-# Script options
-./scripts/build-debian.sh --help
-./scripts/build-debian.sh --debug
-./scripts/build-debian.sh --clean
+### Project Structure
+```
+ssmtp-mailer/
+├── src/                    # Source code
+│   ├── core/              # Core functionality
+│   │   ├── auth/          # Authentication modules
+│   │   ├── config/        # Configuration management
+│   │   ├── logging/       # Logging system
+│   │   ├── queue/         # Email queue management
+│   │   └── smtp/          # SMTP client implementation
+│   ├── email.cpp          # Email class implementation
+│   ├── mailer.cpp         # Main mailer class
+│   └── main.cpp           # Command-line interface
+├── include/                # Header files
+├── scripts/                # Build and installation scripts
+├── docs/                   # Documentation
+├── tests/                  # Test suite
+├── CMakeLists.txt          # CMake configuration
+└── Makefile                # Build automation
 ```
 
-## Directory Structure
-
-### Linux
-```
-/etc/ssmtp-mailer/
-├── ssmtp-mailer.conf            # Main configuration
-├── conf.d/                      # Modular configurations
-│   ├── 01-defaults.conf        # Global defaults
-│   ├── 10-domains.conf         # Domain definitions
-│   ├── 20-users.conf           # User accounts
-│   ├── 30-address-mapping.conf # Routing rules
-│   ├── 40-smtp-servers.conf    # SMTP servers
-│   └── 50-logging.conf         # Logging config
-├── domains/                     # Domain-specific configs
-├── users/                       # User account definitions
-├── mappings/                    # Address routing rules
-└── ssl/                         # SSL certificates
-```
-
-### macOS
-```
-/usr/local/etc/ssmtp-mailer/
-├── ssmtp-mailer.conf            # Main configuration
-├── conf.d/                      # Modular configurations
-│   ├── 01-defaults.conf        # Global defaults
-│   ├── 10-domains.conf         # Domain definitions
-│   ├── 20-users.conf           # User accounts
-│   ├── 30-address-mapping.conf # Routing rules
-│   ├── 40-smtp-servers.conf    # SMTP servers
-│   └── 50-logging.conf         # Logging config
-├── domains/                     # Domain-specific configs
-├── users/                       # User account definitions
-├── mappings/                    # Address routing rules
-└── ssl/                         # SSL certificates
-```
-
-## Logging
-
-Log file locations depend on your platform:
-
-- **Linux**: `/var/log/ssmtp-mailer.log`
-- **macOS**: `/usr/local/var/log/ssmtp-mailer.log`
-
-Log levels include:
-
-- `debug`: Detailed debugging information
-- `info`: General information and status
-- `warning`: Warning messages
-- `error`: Error messages
-- `critical`: Critical errors
-
-## Security
-
-- SSL/TLS encryption for all SMTP connections
-- Authentication credentials stored securely
-- Input validation and sanitization
-- Rate limiting for SMTP connections
-- Audit logging for security events
-- Platform-specific security frameworks (Security.framework on macOS)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
-
-## Testing
-
+### Testing
 ```bash
 # Run all tests
 make test
 
 # Run specific test suite
-cd build && ctest -R smtp_tests
+make test-unit
+make test-integration
+make test-performance
+
+# Generate coverage report
+make coverage
 ```
 
-## Troubleshooting
+## 📚 Documentation
 
-### Common Issues
+### Available Documentation
+- **Installation Guide**: `docs/installation/`
+- **Configuration Reference**: `docs/configuration/`
+- **API Documentation**: `docs/api/`
+- **Development Guide**: `docs/development/`
 
-1. **Authentication Failed**: Check SMTP server credentials and authentication method
-2. **Connection Refused**: Verify SMTP server hostname and port
-3. **SSL Errors**: Ensure SSL certificates are valid and up-to-date
-4. **Permission Denied**: Check file permissions for configuration and log files
-
-### Platform-Specific Issues
-
-#### macOS
-- **Xcode Command Line Tools**: Ensure they are installed: `xcode-select --install`
-- **OpenSSL**: Use Homebrew version: `brew install openssl@3`
-- **Architecture Mismatch**: Use `make build-universal` for compatibility with both Intel and Apple Silicon
-
-#### Linux
-- **Library Dependencies**: Install development packages: `sudo apt-get install libssl-dev`
-- **Compiler Version**: Ensure GCC 7+ or Clang 5+ is installed
-
-### Debug Mode
-
+### Building Documentation
 ```bash
-# Enable debug logging
-make debug
-# Edit the appropriate logging config file for your platform
-# Set log_level = debug
+# Generate API docs
+make docs-api
+
+# Build user manual
+make docs-manual
+
+# Create PDF documentation
+make docs-pdf
 ```
 
-## License
+## 🤝 Contributing
 
-This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
+We welcome contributions! Here's how you can help:
 
-## Support
+### Getting Started
+1. **Fork** the repository
+2. **Clone** your fork locally
+3. **Create** a feature branch
+4. **Make** your changes
+5. **Test** thoroughly
+6. **Submit** a pull request
 
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/ssmtp-mailer/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/ssmtp-mailer/discussions)
+### Development Guidelines
+- Follow the existing code style
+- Add tests for new features
+- Update documentation as needed
+- Ensure all tests pass
+- Follow commit message conventions
 
-## Roadmap
+### Code Style
+- **C++**: Follow Google C++ Style Guide
+- **Naming**: Use descriptive names and consistent conventions
+- **Comments**: Document complex logic and public APIs
+- **Error Handling**: Use proper error codes and logging
 
-- [ ] Daemon mode for background operation
-- [ ] Mail queue management
-- [ ] DKIM signing support
-- [ ] SPF record generation
-- [ ] Web-based configuration interface
-- [ ] Metrics and monitoring
-- [ ] Windows support (MSVC and MinGW builds)
-- [ ] Linux package support (DEB and RPM packages)
-- [ ] FreeBSD support and package integration
-- [ ] Enhanced macOS support (Catalina+ compatibility)
-- [x] macOS Big Sur+ support
-- [x] Universal binary support (Intel + Apple Silicon)
+### Testing Requirements
+- **Unit Tests**: Required for all new functionality
+- **Integration Tests**: For complex features
+- **Performance Tests**: For performance-critical code
+- **Coverage**: Maintain >80% test coverage
 
-## Acknowledgments
+## 📄 License
 
-- Inspired by the simplicity of `ssmtp`
-- Built with modern C++ standards
-- OpenSSL for secure communications
-- CMake for cross-platform builds
-- Apple frameworks for macOS integration
+This project is licensed under the **Apache License, Version 2.0** - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **OpenSSL**: For cryptographic functionality
+- **libcurl**: For HTTP/HTTPS support
+- **jsoncpp**: For JSON parsing and generation
+- **CMake**: For build system management
+- **Contributors**: All who have helped improve this project
+
+## 📞 Support
+
+### Getting Help
+- **Documentation**: Check the [docs/](docs/) directory
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/blburns/ssmtp-mailer/issues)
+- **Discussions**: Join conversations on [GitHub Discussions](https://github.com/blburns/ssmtp-mailer/discussions)
+- **Wiki**: Check the [GitHub Wiki](https://github.com/blburns/ssmtp-mailer/wiki)
+
+### Community
+- **GitHub**: [https://github.com/blburns/ssmtp-mailer](https://github.com/blburns/ssmtp-mailer)
+- **Issues**: [https://github.com/blburns/ssmtp-mailer/issues](https://github.com/blburns/ssmtp-mailer/issues)
+- **Releases**: [https://github.com/blburns/ssmtp-mailer/releases](https://github.com/blburns/ssmtp-mailer/releases)
+
+---
+
+**Made with ❤️ by the ssmtp-mailer community**
+
+*If you find this project useful, please consider giving it a ⭐ on GitHub!*
