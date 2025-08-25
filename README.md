@@ -261,7 +261,7 @@ ssmtp-mailer config show
 #include <ssmtp-mailer/mailer.hpp>
 
 // Create email
-ssmtp_mailer::Email email;
+    ssmtp_mailer::Email email;
 email.setFrom("sender@example.com");
 email.addTo("recipient@example.com");
 email.setSubject("Test Email");
@@ -269,7 +269,7 @@ email.setBody("Hello from ssmtp-mailer!");
 
 // Send email
 ssmtp_mailer::Mailer mailer;
-mailer.send(email);
+    mailer.send(email);
 ```
 
 #### Python Bindings (Future)
