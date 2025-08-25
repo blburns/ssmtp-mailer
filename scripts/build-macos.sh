@@ -21,7 +21,7 @@ VERSION="0.1.0"
 
 # Build options
 BUILD_TYPE="Release"
-BUILD_ARCH="universal"
+BUILD_ARCH="auto"
 BUILD_TESTS="ON"
 BUILD_EXAMPLES="OFF"
 ENABLE_LOGGING="ON"
@@ -53,6 +53,7 @@ show_usage() {
 Usage: $0 [OPTIONS]
 
 Build ssmtp-mailer for macOS Big Sur 11.0+ and later.
+By default, automatically detects your system architecture for optimal builds.
 
 OPTIONS:
     -h, --help              Show this help message
@@ -60,7 +61,7 @@ OPTIONS:
     -c, --clean             Clean build directory before building
     -d, --debug             Build in debug mode
     -r, --release           Build in release mode (default)
-    -a, --arch ARCH         Build for specific architecture (universal, intel, arm64)
+    -a, --arch ARCH         Build for specific architecture (auto, universal, intel, arm64)
     -j, --jobs N            Number of parallel jobs (default: auto-detect)
     --no-tests              Disable building tests
     --examples              Enable building examples
@@ -70,12 +71,26 @@ OPTIONS:
     --package               Build DMG package after successful build
 
 EXAMPLES:
-    $0                        # Build release version for universal binary
+    $0                        # Build release version (auto-detect architecture)
     $0 -d                    # Build debug version
+    $0 -a auto               # Auto-detect architecture (default)
+    $0 -a universal          # Build universal binary (Intel + Apple Silicon)
     $0 -a intel              # Build for Intel Macs only
     $0 -a arm64              # Build for Apple Silicon Macs only
     $0 -c -r                 # Clean build and build release version
     $0 --package             # Build and create DMG package
+
+ARCHITECTURE OPTIONS:
+    auto (default)           Automatically detect system architecture:
+                              - Intel Macs: builds x86_64 binary
+                              - Apple Silicon Macs: builds arm64 binary
+    universal                Build universal binary for both architectures
+                              - Requires both x86_64 and arm64 libraries
+                              - Larger file size but runs on all Macs
+    intel                    Force Intel-only build (x86_64)
+                              - Smaller binary, Intel Macs only
+    arm64                    Force Apple Silicon-only build (arm64)
+                              - Smaller binary, Apple Silicon Macs only
 
 EOF
 }
@@ -97,6 +112,29 @@ check_macos_version() {
     fi
     
     print_success "macOS version check passed: $macos_version"
+}
+
+# Function to detect system architecture
+detect_system_architecture() {
+    local arch=$(uname -m)
+    case $arch in
+        "x86_64")
+            if [ "$BUILD_ARCH" = "auto" ]; then
+                BUILD_ARCH="intel"
+                print_status "Auto-detected Intel architecture (x86_64)"
+            fi
+            ;;
+        "arm64")
+            if [ "$BUILD_ARCH" = "auto" ]; then
+                BUILD_ARCH="arm64"
+                print_status "Auto-detected Apple Silicon architecture (arm64)"
+            fi
+            ;;
+        *)
+            print_error "Unsupported architecture: $arch"
+            exit 1
+            ;;
+    esac
 }
 
 # Function to check dependencies

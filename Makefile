@@ -430,6 +430,7 @@ help:
 	@echo "  all              - Build the project (default target)"
 	@echo "  build            - Build using CMake with default settings"
 	@echo "  build-script     - Build using platform-specific build script ⭐ RECOMMENDED"
+	@echo "                    macOS: auto-detects architecture, Linux: native build"
 	@echo "  build-debian     - Build using Debian/Ubuntu script"
 	@echo "  build-redhat     - Build using Red Hat script"
 	@echo "  build-freebsd    - Build using FreeBSD script"
@@ -507,9 +508,14 @@ endif
 ifeq ($(PLATFORM),macos)
 	@echo "  🍎 macOS Quick Start:"
 	@echo "    1. make deps                    # Install dependencies via Homebrew"
-	@echo "    2. make build-universal         # Build universal binary"
+	@echo "    2. make build-script            # 🚀 SMART: Auto-detect architecture and build"
 	@echo "    3. make package-dmg             # Create distribution package"
 	@echo "    4. sudo make install            # Install to system"
+	@echo ""
+	@echo "  🔍 macOS Architecture Detection:"
+	@echo "    • Intel Macs → x86_64 binary (smaller, faster)"
+	@echo "    • Apple Silicon → arm64 binary (native performance)"
+	@echo "    • Universal → Both architectures (larger, compatible with all Macs)"
 else
 	@echo "  🐧 Linux Quick Start:"
 	@echo "    1. make deps                    # Install dependencies via apt/yum/dnf"
@@ -533,9 +539,10 @@ endif
 	@echo "  # Build and run tests"
 	@echo "  make build && make test"
 	@echo ""
-	@echo "  # Build universal binary and create package (macOS)"
+	@echo "  # Build and create package (macOS)"
 ifeq ($(PLATFORM),macos)
-	@echo "  make build-universal && make package-dmg"
+	@echo "  make build-script && make package-dmg          # Auto-detect architecture"
+	@echo "  make build-universal && make package-dmg       # Force universal binary"
 else
 	@echo "  make build-64 && make package"
 endif
@@ -562,6 +569,15 @@ endif
 	@echo "    • Force specific package type: make package-deb or make package-rpm"
 	@echo "    • For unsupported distros: make package-generic"
 	@echo "    • Verify build completion before packaging: make build"
+	@echo ""
+ifeq ($(PLATFORM),macos)
+	@echo "  🍎 macOS ARCHITECTURE ISSUES:"
+	@echo "    • Use 'make build-script' for auto-detection (recommended)"
+	@echo "    • Force Intel-only: make build-intel"
+	@echo "    • Force Apple Silicon: make build-arm64"
+	@echo "    • Universal binary: make build-universal (requires both arch libs)"
+	@echo "    • If ARM64 linking fails on Intel Mac: use 'make build-intel'"
+endif
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
 	@echo "║                              LINUX DISTRIBUTION SUPPORT                      ║"
