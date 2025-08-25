@@ -17,12 +17,15 @@ ssmtp-mailer now supports sending emails via REST APIs in addition to traditiona
 1. **SendGrid** - Popular email delivery service with excellent deliverability
 2. **Mailgun** - Email API service focused on transactional emails
 3. **Amazon SES** - AWS Simple Email Service for high-volume sending
+4. **ProtonMail** - Privacy-focused email service with OAuth2 support
+5. **Zoho Mail** - Business email and collaboration platform with OAuth2
+6. **Fastmail** - Professional email hosting service with OAuth2 support
 
 ### Planned Support
 
-4. **Postmark** - Transactional email service
-5. **SparkPost** - Email delivery platform
-6. **Mailjet** - Email marketing and transactional service
+7. **Postmark** - Transactional email service
+8. **SparkPost** - Email delivery platform
+9. **Mailjet** - Email marketing and transactional service
 
 ## Quick Start
 
@@ -110,10 +113,12 @@ enable_tracking = true           # Enable email tracking
 
 Different providers support different authentication methods:
 
-- **API Key** - Most common (SendGrid, Mailgun)
-- **OAuth2** - For services that support it
+- **API Key** - Most common (SendGrid, Mailgun, Amazon SES)
+- **OAuth2** - For services that support it (ProtonMail, Zoho Mail, Fastmail)
 - **Bearer Token** - For token-based authentication
 - **Basic Auth** - Username/password authentication
+
+**OAuth2 Support:** ProtonMail, Zoho Mail, and Fastmail use OAuth2 authentication for enhanced security. Use our OAuth2 helper tools to generate tokens for these providers.
 
 ### Global Settings
 
@@ -177,7 +182,59 @@ api_secret = your_aws_secret_access_key
 region = us-east-1
 ```
 
+### ProtonMail
+
+1. Create ProtonMail account at [protonmail.com](https://protonmail.com)
+2. Set up OAuth2 application in ProtonMail developer portal
+3. Generate OAuth2 token using our helper tools
+4. Configure sender email address
+
+```ini
+[api:protonmail]
+enabled = true
+provider = PROTONMAIL
+oauth2_token = your_oauth2_token_here
+base_url = https://api.protonmail.ch
+sender_email = your-email@protonmail.com
+```
+
+### Zoho Mail
+
+1. Create Zoho Mail account at [zoho.com](https://zoho.com)
+2. Set up OAuth2 application in Zoho developer console
+3. Generate OAuth2 token using our helper tools
+4. Configure sender email and domain
+
+```ini
+[api:zoho-mail]
+enabled = true
+provider = ZOHO_MAIL
+oauth2_token = your_oauth2_token_here
+base_url = https://api.zoho.com
+sender_email = your-email@yourdomain.com
+enable_tracking = true
+```
+
+### Fastmail
+
+1. Create Fastmail account at [fastmail.com](https://fastmail.com)
+2. Set up OAuth2 application in Fastmail developer portal
+3. Generate OAuth2 token using our helper tools
+4. Configure sender email address
+
+```ini
+[api:fastmail]
+enabled = true
+provider = FASTMAIL
+oauth2_token = your_oauth2_token_here
+base_url = https://api.fastmail.com
+sender_email = your-email@fastmail.com
+enable_tracking = true
+```
+
 ## Advanced Features
+
+For detailed information about advanced features, see [Advanced Features](advanced_features.md).
 
 ### Automatic Fallback
 
@@ -263,6 +320,9 @@ Most API providers have rate limits:
 - **SendGrid**: 100 emails/second
 - **Mailgun**: 5 emails/second (free), 1000 emails/second (paid)
 - **Amazon SES**: 14 emails/second (default), configurable
+- **ProtonMail**: 100 emails/hour (free), 1000 emails/hour (paid)
+- **Zoho Mail**: 100 emails/day (free), 1000 emails/day (paid)
+- **Fastmail**: 100 emails/hour (free), 1000 emails/hour (paid)
 
 ### Connection Pooling
 
@@ -318,6 +378,9 @@ Most providers offer detailed logs and analytics:
 - **SendGrid**: Activity → Mail
 - **Mailgun**: Logs → Events
 - **Amazon SES**: Sending Statistics
+- **ProtonMail**: Settings → Security → Activity Log
+- **Zoho Mail**: Admin → Reports → Email Reports
+- **Fastmail**: Settings → Security → Activity Log
 
 ## Migration from SMTP
 
@@ -345,6 +408,35 @@ password = app_password
 [api:sendgrid]
 # ... new API config ...
 ```
+
+## New OAuth2 Integrations
+
+### Overview
+
+ssmtp-mailer now supports three new email providers with OAuth2 authentication:
+
+- **ProtonMail** - Privacy-focused email service with end-to-end encryption
+- **Zoho Mail** - Business email and collaboration platform
+- **Fastmail** - Professional email hosting service
+
+### Benefits
+
+- **Enhanced Security** - OAuth2 tokens instead of passwords
+- **Modern Authentication** - Industry-standard OAuth2 flow
+- **Privacy-Focused** - ProtonMail's Swiss-based privacy protection
+- **Business-Ready** - Zoho Mail's enterprise collaboration features
+- **Professional Hosting** - Fastmail's reliable email infrastructure
+
+### Quick Setup
+
+```bash
+# Generate OAuth2 tokens for new providers
+python3 tools/oauth2-helper/oauth2-helper.py protonmail
+python3 tools/oauth2-helper/oauth2-helper.py zoho-mail
+python3 tools/oauth2-helper/oauth2-helper.py fastmail
+```
+
+For detailed setup instructions and examples, see [New OAuth2 API Integrations](new_oauth2_integrations.md).
 
 ## Future Enhancements
 

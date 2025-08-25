@@ -62,11 +62,14 @@ if (rate_limiter->isAllowed()) {
 
 ### Provider-Specific Limits
 
-| Provider | Default Rate | Burst Limit | Strategy |
-|----------|--------------|-------------|----------|
-| SendGrid | 100/sec | 1000 | Fixed Window |
-| Mailgun | 5/sec (free) | 100 | Fixed Window |
-| Amazon SES | 14/sec | 50 | Fixed Window |
+| Provider | Default Rate | Burst Limit | Strategy | Auth Method |
+|----------|--------------|-------------|----------|-------------|
+| SendGrid | 100/sec | 1000 | Fixed Window | API Key |
+| Mailgun | 5/sec (free) | 100 | Fixed Window | API Key |
+| Amazon SES | 14/sec | 50 | Fixed Window | API Key |
+| ProtonMail | 100/hour | 1000/hour | Fixed Window | OAuth2 |
+| Zoho Mail | 100/day | 1000/day | Fixed Window | OAuth2 |
+| Fastmail | 100/hour | 1000/hour | Fixed Window | OAuth2 |
 
 ## Webhook Event Processing
 
@@ -501,6 +504,76 @@ log_webhook_events = true
 3. **Rate Limits**: Configure appropriate rate limits
 4. **Caching**: Enable relevant caching options
 
+## OAuth2 Authentication
+
+### Overview
+
+OAuth2 authentication provides enhanced security for email providers that support it. Instead of storing passwords or API keys, OAuth2 uses secure tokens that can be refreshed and revoked.
+
+### Supported OAuth2 Providers
+
+- **ProtonMail** - Privacy-focused email service
+- **Zoho Mail** - Business email platform
+- **Fastmail** - Professional email hosting
+
+### OAuth2 Flow
+
+1. **Authorization Request**: User authorizes the application
+2. **Token Generation**: Provider generates access token
+3. **Token Usage**: Application uses token for API calls
+4. **Token Refresh**: Tokens are refreshed before expiration
+
+### Configuration
+
+```ini
+[api:protonmail]
+enabled = true
+provider = PROTONMAIL
+oauth2_token = your_oauth2_token_here
+base_url = https://api.protonmail.ch
+sender_email = your-email@protonmail.com
+
+[api:zoho-mail]
+enabled = true
+provider = ZOHO_MAIL
+oauth2_token = your_oauth2_token_here
+base_url = https://api.zoho.com
+sender_email = your-email@yourdomain.com
+
+[api:fastmail]
+enabled = true
+provider = FASTMAIL
+oauth2_token = your_oauth2_token_here
+base_url = https://api.fastmail.com
+sender_email = your-email@fastmail.com
+```
+
+### Token Management
+
+```cpp
+#include "ssmtp-mailer/api_client.hpp"
+
+// OAuth2 token validation
+bool isValidToken(const std::string& token) {
+    // Check token format and expiration
+    return !token.empty() && token.length() > 20;
+}
+
+// Token refresh handling
+void refreshTokenIfNeeded(ssmtp_mailer::APIClientConfig& config) {
+    // Use OAuth2 helper tools to refresh expired tokens
+    // This is typically handled automatically by the helper tools
+}
+```
+
+### Security Benefits
+
+- **No Password Storage**: Tokens are used instead of passwords
+- **Limited Scope**: Tokens have specific permissions
+- **Revocable**: Tokens can be revoked if compromised
+- **Time-Limited**: Tokens expire automatically
+- **Refreshable**: New tokens can be generated without re-authorization
+
 ## Conclusion
 
 The advanced features of ssmtp-mailer provide enterprise-grade capabilities for:
@@ -510,5 +583,6 @@ The advanced features of ssmtp-mailer provide enterprise-grade capabilities for:
 - **Monitoring**: Comprehensive analytics and alerting
 - **Flexibility**: Template management and webhook processing
 - **Security**: Authentication and data protection
+- **Modern Authentication**: OAuth2 support for enhanced security
 
 These features make ssmtp-mailer suitable for production environments requiring high performance, reliability, and observability.

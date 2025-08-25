@@ -15,14 +15,12 @@ Welcome to the comprehensive OAuth2 authentication documentation for ssmtp-maile
 - **[Office 365 OAuth2 Setup](office365-oauth2-setup.md)** - Microsoft 365 and Office 365 authentication
 - **[ProtonMail OAuth2 Setup](protonmail-oauth2-setup.md)** - Privacy-focused email authentication
 - **[Fastmail OAuth2 Setup](fastmail-oauth2-setup.md)** - Professional email hosting setup
+- **[Zoho Mail OAuth2 Setup](zoho-mail-oauth2-setup.md)** - Business email and collaboration platform
 
 #### Transactional Email Services
 - **[SendGrid OAuth2 Setup](sendgrid-oauth2-setup.md)** - Email delivery service authentication
 - **[Amazon SES OAuth2 Setup](amazon-ses-oauth2-setup.md)** - AWS Simple Email Service setup
 - **[Mailgun OAuth2 Setup](mailgun-oauth2-setup.md)** - Email API service authentication
-
-#### Business Email Solutions
-- **[Zoho Mail OAuth2 Setup](zoho-mail-oauth2-setup.md)** - Business email and collaboration platform
 
 ### 🛠️ Tools & Utilities
 - **[OAuth2 Helper Tools](oauth2-helper-tools.md)** - Using the built-in OAuth2 helper scripts
@@ -48,6 +46,9 @@ python3 tools/oauth2-helper/oauth2-helper.py --list
 # Launch provider-specific helper
 python3 tools/oauth2-helper/oauth2-helper.py gmail
 python3 tools/oauth2-helper/oauth2-helper.py office365
+python3 tools/oauth2-helper/oauth2-helper.py protonmail
+python3 tools/oauth2-helper/oauth2-helper.py zoho-mail
+python3 tools/oauth2-helper/oauth2-helper.py fastmail
 # ... and more
 ```
 
