@@ -95,6 +95,42 @@ else
 	@echo "DEB packages are only supported on Linux"
 endif
 
+# Package using build scripts (recommended)
+package-script:
+ifeq ($(PLATFORM),macos)
+	@echo "Building macOS package with build script..."
+	./scripts/build-macos.sh --package
+else ifeq ($(PLATFORM),linux)
+	@echo "Detecting Linux distribution for package building..."
+	@if [ -f /etc/debian_version ] || [ -f /etc/os-release ] && grep -q "debian\|ubuntu" /etc/os-release; then \
+		echo "Building DEB package with Debian/Ubuntu script..."; \
+		./scripts/build-debian.sh --package; \
+	elif [ -f /etc/redhat-release ] || [ -f /etc/os-release ] && grep -q "rhel\|centos\|fedora" /etc/os-release; then \
+		echo "Building RPM package with Red Hat script..."; \
+		./scripts/build-redhat.sh --package; \
+	else \
+		echo "Unknown Linux distribution, using generic package build..."; \
+		$(MAKE) package; \
+	fi
+else
+	@echo "Platform $(PLATFORM) not supported by build scripts"
+endif
+
+# Debian/Ubuntu package
+package-debian: build
+	@echo "Building DEB package with Debian script..."
+	./scripts/build-debian.sh --package
+
+# Red Hat package
+package-redhat: build
+	@echo "Building RPM package with Red Hat script..."
+	./scripts/build-redhat.sh --package
+
+# FreeBSD package
+package-freebsd: build
+	@echo "Building FreeBSD package with FreeBSD script..."
+	./scripts/build-freebsd.sh --package
+
 # Package DMG (macOS only)
 package-dmg: build
 ifeq ($(PLATFORM),macos)
@@ -113,6 +149,42 @@ ifeq ($(PLATFORM),macos)
 else
 	$(MAKE) package-rpm package-deb
 endif
+
+# Platform-specific build scripts
+build-script:
+ifeq ($(PLATFORM),macos)
+	@echo "Using macOS build script..."
+	./scripts/build-macos.sh
+else ifeq ($(PLATFORM),linux)
+	@echo "Detecting Linux distribution for appropriate build script..."
+	@if [ -f /etc/debian_version ] || [ -f /etc/os-release ] && grep -q "debian\|ubuntu" /etc/os-release; then \
+		echo "Using Debian/Ubuntu build script..."; \
+		./scripts/build-debian.sh; \
+	elif [ -f /etc/redhat-release ] || [ -f /etc/os-release ] && grep -q "rhel\|centos\|fedora" /etc/os-release; then \
+		echo "Using Red Hat build script..."; \
+		./scripts/build-redhat.sh; \
+	else \
+		echo "Unknown Linux distribution, using generic build..."; \
+		$(MAKE) build; \
+	fi
+else
+	@echo "Platform $(PLATFORM) not supported by build scripts"
+endif
+
+# Debian/Ubuntu specific build
+build-debian:
+	@echo "Building with Debian/Ubuntu script..."
+	./scripts/build-debian.sh
+
+# Red Hat/CentOS/Fedora specific build  
+build-redhat:
+	@echo "Building with Red Hat script..."
+	./scripts/build-redhat.sh
+
+# FreeBSD specific build
+build-freebsd:
+	@echo "Building with FreeBSD script..."
+	./scripts/build-freebsd.sh
 
 # Build 32-bit version (Linux only)
 build-32: $(BUILD_DIR)
@@ -301,6 +373,10 @@ help:
 	@echo "📋 BUILD TARGETS:"
 	@echo "  all              - Build the project (default target)"
 	@echo "  build            - Build using CMake with default settings"
+	@echo "  build-script     - Build using platform-specific build script ⭐ RECOMMENDED"
+	@echo "  build-debian     - Build using Debian/Ubuntu script"
+	@echo "  build-redhat     - Build using Red Hat script"
+	@echo "  build-freebsd    - Build using FreeBSD script"
 	@echo "  clean            - Clean build artifacts and directories"
 	@echo "  install          - Install to system-wide location"
 	@echo "  uninstall        - Remove from system"
@@ -310,6 +386,10 @@ help:
 	@echo ""
 	@echo "📦 PACKAGING:"
 	@echo "  package          - Build platform-specific packages"
+	@echo "  package-script   - Build packages using platform-specific scripts ⭐ RECOMMENDED"
+	@echo "  package-debian   - Build DEB package using Debian script"
+	@echo "  package-redhat   - Build RPM package using Red Hat script"
+	@echo "  package-freebsd  - Build FreeBSD package using FreeBSD script"
 ifeq ($(PLATFORM),macos)
 	@echo "  package-dmg      - Build macOS DMG package for distribution"
 else
