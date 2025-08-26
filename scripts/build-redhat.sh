@@ -2,6 +2,10 @@
 
 # ssmtp-mailer Red Hat/CentOS/Fedora Build Script
 # This script automates the build process for Red Hat-based distributions
+#
+# Dependencies:
+# - For building: gcc-c++, cmake3, make, openssl-devel, jsoncpp-devel, libcurl-devel
+# - For RPM packages: rpm-build, rpmdevtools, redhat-rpm-config
 
 set -e
 
@@ -67,7 +71,7 @@ OPTIONS:
     --no-logging            Disable logging
     --no-ssl                Disable SSL support
     --verbose               Enable verbose output
-    --package               Build RPM package after successful build
+    --package               Build RPM package after successful build (requires rpm-build)
 
 EXAMPLES:
     $0                        # Build release version for current architecture
@@ -75,6 +79,11 @@ EXAMPLES:
     $0 -a both               # Build for both 32-bit and 64-bit
     $0 -c -r                 # Clean build and build release version
     $0 --package             # Build and create RPM package
+
+DEPENDENCIES:
+    # Install rpm-build for RPM package creation:
+    # Fedora: sudo dnf install rpm-build
+    # CentOS/RHEL: sudo yum install rpm-build
 
 EOF
 }
@@ -134,7 +143,6 @@ check_dependencies() {
     # Install SSL development libraries
     local ssl_packages=(
         "openssl-devel"
-        "libcrypto-devel"
     )
     
     # Install JSON and HTTP libraries
@@ -163,6 +171,14 @@ check_dependencies() {
     if [ "$CREATE_PACKAGES" = true ]; then
         print_status "Installing package building tools..."
         sudo $PKG_MANAGER install -y "${package_packages[@]}"
+        
+        # Verify rpm-build is available for RPM package creation
+        if ! command -v rpmbuild &> /dev/null; then
+            print_error "rpmbuild not found after installation. RPM package creation may fail."
+            print_info "Try: sudo $PKG_MANAGER install rpm-build"
+        else
+            print_success "rpmbuild available for RPM package creation"
+        fi
     fi
     
     print_success "All dependencies installed successfully"
