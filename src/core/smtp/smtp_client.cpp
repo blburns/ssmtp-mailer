@@ -8,25 +8,16 @@
 #include <unistd.h>
 #include <sstream>
 #include <regex>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 namespace ssmtp_mailer {
 
 SMTPClient::SMTPClient(const ConfigManager& config) : config_(config), socket_fd_(-1), ssl_context_(nullptr), ssl_connection_(nullptr) {
-    // Initialize state
-    state_ = SMTPState::DISCONNECTED;
-    server_ = "";
-    port_ = 0;
-    use_ssl_ = false;
-    last_error_ = "";
-    capabilities_ = "";
-    
-    // Set default timeouts
-    connection_timeout_ = 30;
-    read_timeout_ = 60;
-    write_timeout_ = 60;
+    // Initialize OpenSSL
+    SSL_library_init();
+    SSL_load_error_strings();
+    OpenSSL_add_all_algorithms();
 }
 
 SMTPClient::~SMTPClient() {
@@ -48,8 +39,8 @@ SMTPResult SMTPClient::send(const Email& email) {
             return SMTPResult::createError("No configuration found for domain: " + domain);
         }
         
-        // Use system sendmail command for reliability
-        return sendViaSystemCommand(email, domain_config);
+        // Use curl to send email via SMTP
+        return sendViaCurl(email, domain_config);
         
     } catch (const std::exception& e) {
         logger.error("SMTP send error: " + std::string(e.what()));
@@ -60,15 +51,55 @@ SMTPResult SMTPClient::send(const Email& email) {
 bool SMTPClient::connect(const std::string& server, int port, bool use_ssl) {
     Logger& logger = Logger::getInstance();
     
-    // Store connection parameters
-    server_ = server;
-    port_ = port;
-    use_ssl_ = use_ssl;
+    // Create socket
+    socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_fd_ < 0) {
+        logger.error("Failed to create socket");
+        return false;
+    }
     
-    // For now, we'll use system commands instead of raw sockets
-    // This is more reliable and easier to maintain
-    logger.info("SMTP connection configured for: " + server + ":" + std::to_string(port));
-    state_ = SMTPState::CONNECTED;
+    // Get server address
+    struct hostent* server_info = gethostbyname(server.c_str());
+    if (!server_info) {
+        logger.error("Failed to resolve hostname: " + server);
+        close(socket_fd_);
+        socket_fd_ = -1;
+        return false;
+    }
+    
+    // Set up server address
+    struct sockaddr_in server_addr;
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    memcpy(&server_addr.sin_addr, server_info->h_addr, server_info->h_length);
+    
+    // Connect to server
+    if (::connect(socket_fd_, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        logger.error("Failed to connect to SMTP server: " + server + ":" + std::to_string(port));
+        close(socket_fd_);
+        socket_fd_ = -1;
+        return false;
+    }
+    
+    // Read initial response
+    std::string response = readResponse();
+    if (response.empty() || response[0] != '2') {
+        logger.error("SMTP server rejected connection: " + response);
+        close(socket_fd_);
+        socket_fd_ = -1;
+        return false;
+    }
+    
+    // Set up SSL if required
+    if (use_ssl) {
+        if (!setupSSL()) {
+            disconnect();
+            return false;
+        }
+    }
+    
+    logger.info("Connected to SMTP server: " + server + ":" + std::to_string(port));
     return true;
 }
 
@@ -81,24 +112,173 @@ void SMTPClient::disconnect() {
         close(socket_fd_);
         socket_fd_ = -1;
     }
-    state_ = SMTPState::DISCONNECTED;
 }
 
 bool SMTPClient::authenticate(const std::string& username, const std::string& password, SMTPAuthMethod auth_method) {
     Logger& logger = Logger::getInstance();
-    logger.info("SMTP authentication configured for user: " + username);
-    return true; // Authentication handled by system command
+    
+    switch (auth_method) {
+        case SMTPAuthMethod::LOGIN:
+            return authenticateLogin(username, password);
+        case SMTPAuthMethod::PLAIN:
+            return authenticatePlain(username, password);
+        default:
+            logger.warning("Unsupported authentication method");
+            return false;
+    }
 }
 
 bool SMTPClient::testConnection() {
-    // Test by trying to send a simple email
-    Logger& logger = Logger::getInstance();
-    logger.info("Testing SMTP connection...");
-    return true; // System command approach is always available
+    // This is a simple test - just try to connect and disconnect
+    const DomainConfig* domain_config = nullptr;
+    
+    // Try to find any configured domain
+    // For now, we'll just return true if we have a socket
+    return socket_fd_ >= 0;
 }
 
 // Private helper methods
-SMTPResult SMTPClient::sendViaSystemCommand(const Email& email, const DomainConfig* domain_config) {
+bool SMTPClient::setupSSL() {
+    Logger& logger = Logger::getInstance();
+    
+    // Create SSL context
+    ssl_context_ = SSL_CTX_new(TLS_client_method());
+    if (!ssl_context_) {
+        logger.error("Failed to create SSL context");
+        return false;
+    }
+    
+    // Create SSL connection
+    ssl_connection_ = SSL_new(ssl_context_);
+    if (!ssl_connection_) {
+        logger.error("Failed to create SSL connection");
+        return false;
+    }
+    
+    // Set socket for SSL
+    if (SSL_set_fd(ssl_connection_, socket_fd_) != 1) {
+        logger.error("Failed to set SSL socket");
+        return false;
+    }
+    
+    // Perform SSL handshake
+    if (SSL_connect(ssl_connection_) != 1) {
+        logger.error("SSL handshake failed");
+        return false;
+    }
+    
+    logger.info("SSL connection established");
+    return true;
+}
+
+std::string SMTPClient::readResponse() {
+    std::string response;
+    char buffer[1024];
+    
+    while (true) {
+        int bytes_read;
+        if (ssl_connection_) {
+            bytes_read = SSL_read(ssl_connection_, buffer, sizeof(buffer) - 1);
+        } else {
+            bytes_read = recv(socket_fd_, buffer, sizeof(buffer) - 1, 0);
+        }
+        
+        if (bytes_read <= 0) {
+            break;
+        }
+        
+        buffer[bytes_read] = '\0';
+        response += buffer;
+        
+        // Check if response is complete (ends with \r\n)
+        if (response.length() >= 2 && 
+            response[response.length() - 2] == '\r' && 
+            response[response.length() - 1] == '\n') {
+            break;
+        }
+    }
+    
+    return response;
+}
+
+bool SMTPClient::sendCommand(const std::string& command) {
+    std::string full_command = command + "\r\n";
+    
+    int bytes_sent;
+    if (ssl_connection_) {
+        bytes_sent = SSL_write(ssl_connection_, full_command.c_str(), full_command.length());
+    } else {
+        bytes_sent = ::send(socket_fd_, full_command.c_str(), full_command.length(), 0);
+    }
+    
+    return bytes_sent == static_cast<int>(full_command.length());
+}
+
+bool SMTPClient::authenticateLogin(const std::string& username, const std::string& password) {
+    Logger& logger = Logger::getInstance();
+    
+    // Send AUTH LOGIN command
+    if (!sendCommand("AUTH LOGIN")) {
+        return false;
+    }
+    
+    std::string response = readResponse();
+    if (response[0] != '3') {
+        logger.error("AUTH LOGIN not supported: " + response);
+        return false;
+    }
+    
+    // Send username (base64 encoded)
+    std::string encoded_username = base64Encode(username);
+    if (!sendCommand(encoded_username)) {
+        return false;
+    }
+    
+    response = readResponse();
+    if (response[0] != '3') {
+        logger.error("Username rejected: " + response);
+        return false;
+    }
+    
+    // Send password (base64 encoded)
+    std::string encoded_password = base64Encode(password);
+    if (!sendCommand(encoded_password)) {
+        return false;
+    }
+    
+    response = readResponse();
+    if (response[0] != '2') {
+        logger.error("Authentication failed: " + response);
+        return false;
+    }
+    
+    logger.info("SMTP authentication successful");
+    return true;
+}
+
+bool SMTPClient::authenticatePlain(const std::string& username, const std::string& password) {
+    Logger& logger = Logger::getInstance();
+    
+    // Create PLAIN authentication string
+    std::string auth_string = "\0" + username + "\0" + password;
+    std::string encoded_auth = base64Encode(auth_string);
+    
+    // Send AUTH PLAIN command
+    if (!sendCommand("AUTH PLAIN " + encoded_auth)) {
+        return false;
+    }
+    
+    std::string response = readResponse();
+    if (response[0] != '2') {
+        logger.error("PLAIN authentication failed: " + response);
+        return false;
+    }
+    
+    logger.info("SMTP PLAIN authentication successful");
+    return true;
+}
+
+SMTPResult SMTPClient::sendViaCurl(const Email& email, const DomainConfig* domain_config) {
     Logger& logger = Logger::getInstance();
     
     try {
@@ -142,99 +322,144 @@ SMTPResult SMTPClient::sendViaSystemCommand(const Email& email, const DomainConf
         
         email_file.close();
         
-        // Build sendmail command
+        // Build curl command for SMTP
         std::ostringstream cmd;
-        cmd << "sendmail";
+        cmd << "curl -s --url smtp://" << domain_config->smtp_server << ":" << domain_config->smtp_port;
+        
+        // Add authentication if required
+        if (domain_config->auth_method != "NONE" && !domain_config->username.empty()) {
+            cmd << " --user " << domain_config->username << ":" << domain_config->password;
+        }
+        
+        // Add SSL/TLS options
+        if (domain_config->use_ssl) {
+            cmd << " --ssl-reqd";
+        } else if (domain_config->use_starttls) {
+            cmd << " --ssl-reqd";
+        }
+        
+        // Add mail options
+        cmd << " --mail-from " << email.from;
         
         // Add recipients
         for (const auto& recipient : email.to) {
-            cmd << " " << recipient;
+            cmd << " --mail-rcpt " << recipient;
         }
         
-        // Add input file
-        cmd << " < " << temp_file;
+        // Add email content file
+        cmd << " --upload-file " << temp_file;
         
-        // Execute sendmail command
+        logger.info("Executing curl command: " + cmd.str());
+        
+        // Execute curl command
         int result = system(cmd.str().c_str());
         
         // Clean up temporary file
         unlink(temp_file.c_str());
         
         if (result == 0) {
-            logger.info("Email sent successfully via sendmail");
-            return SMTPResult::createSuccess("Email sent successfully");
+            logger.info("Email sent successfully via curl SMTP");
+            return SMTPResult::createSuccess("Email sent successfully via SMTP");
         } else {
-            return SMTPResult::createError("sendmail command failed with exit code: " + std::to_string(result));
+            return SMTPResult::createError("curl SMTP command failed with exit code: " + std::to_string(result));
         }
         
     } catch (const std::exception& e) {
-        return SMTPResult::createError("System command error: " + std::string(e.what()));
+        return SMTPResult::createError("Curl SMTP error: " + std::string(e.what()));
     }
 }
 
-bool SMTPClient::setupSSL() {
-    Logger& logger = Logger::getInstance();
-    logger.info("SSL setup not needed for system command approach");
-    return true;
-}
-
-std::string SMTPClient::readResponse() {
-    return "250 OK"; // Placeholder for system command approach
-}
-
-bool SMTPClient::sendCommand(const std::string& command) {
-    // Not used in system command approach
-    return true;
-}
-
-bool SMTPClient::authenticateLogin(const std::string& username, const std::string& password) {
-    Logger& logger = Logger::getInstance();
-    logger.info("LOGIN authentication configured for: " + username);
-    return true;
-}
-
-bool SMTPClient::authenticatePlain(const std::string& username, const std::string& password) {
-    Logger& logger = Logger::getInstance();
-    logger.info("PLAIN authentication configured for: " + username);
-    return true;
-}
-
 SMTPResult SMTPClient::sendEmailData(const Email& email) {
-    // This method is not used in the system command approach
-    return SMTPResult::createSuccess("Email sent via system command");
+    Logger& logger = Logger::getInstance();
+    
+    // Send MAIL FROM command
+    std::string mail_from = "MAIL FROM:<" + email.from + ">";
+    if (!sendCommand(mail_from)) {
+        return SMTPResult::createError("Failed to send MAIL FROM command");
+    }
+    
+    std::string response = readResponse();
+    if (response[0] != '2') {
+        return SMTPResult::createError("MAIL FROM rejected: " + response);
+    }
+    
+    // Send RCPT TO commands for each recipient
+    for (const auto& recipient : email.to) {
+        std::string rcpt_to = "RCPT TO:<" + recipient + ">";
+        if (!sendCommand(rcpt_to)) {
+            return SMTPResult::createError("Failed to send RCPT TO command");
+        }
+        
+        response = readResponse();
+        if (response[0] != '2') {
+            return SMTPResult::createError("RCPT TO rejected: " + response);
+        }
+    }
+    
+    // Send DATA command
+    if (!sendCommand("DATA")) {
+        return SMTPResult::createError("Failed to send DATA command");
+    }
+    
+    response = readResponse();
+    if (response[0] != '3') {
+        return SMTPResult::createError("DATA command rejected: " + response);
+    }
+    
+    // Send email headers and body
+    std::string email_data = buildEmailData(email);
+    if (!sendCommand(email_data)) {
+        return SMTPResult::createError("Failed to send email data");
+    }
+    
+    // Send end of data marker
+    if (!sendCommand(".")) {
+        return SMTPResult::createError("Failed to send end of data marker");
+    }
+    
+    response = readResponse();
+    if (response[0] != '2') {
+        return SMTPResult::createError("Email data rejected: " + response);
+    }
+    
+    // Send QUIT command
+    sendCommand("QUIT");
+    
+    logger.info("Email sent successfully");
+    return SMTPResult::createSuccess("Email sent successfully");
 }
 
 std::string SMTPClient::buildEmailData(const Email& email) {
     std::ostringstream email_data;
     
     // Headers
-    email_data << "From: " << email.from << "\n";
+    email_data << "From: " << email.from << "\r\n";
     email_data << "To: ";
     for (size_t i = 0; i < email.to.size(); ++i) {
         if (i > 0) email_data << ", ";
         email_data << email.to[i];
     }
-    email_data << "\n";
-    email_data << "Subject: " << email.subject << "\n";
-    email_data << "Date: " << getCurrentTimestamp() << "\n";
-    email_data << "MIME-Version: 1.0\n";
+    email_data << "\r\n";
+    email_data << "Subject: " << email.subject << "\r\n";
+    email_data << "Date: " << getCurrentTimestamp() << "\r\n";
+    email_data << "MIME-Version: 1.0\r\n";
     
     if (!email.html_body.empty()) {
-        email_data << "Content-Type: multipart/alternative; boundary=\"boundary123\"\n";
-        email_data << "\n";
-        email_data << "--boundary123\n";
-        email_data << "Content-Type: text/plain; charset=UTF-8\n";
-        email_data << "\n";
-        email_data << email.body << "\n";
-        email_data << "--boundary123\n";
-        email_data << "Content-Type: text/html; charset=UTF-8\n";
-        email_data << "\n";
-        email_data << email.html_body << "\n";
-        email_data << "--boundary123--\n";
+        email_data << "Content-Type: multipart/alternative; boundary=\"boundary123\"\r\n";
+        email_data << "\r\n";
+        email_data << "--boundary123\r\n";
+        email_data << "Content-Type: text/plain; charset=UTF-8\r\n";
+        email_data << "\r\n";
+        email_data << email.body << "\r\n";
+        email_data << "--boundary123\r\n";
+        email_data << "Content-Type: text/html; charset=UTF-8\r\n";
+        email_data << "\r\n";
+        email_data << email.html_body << "\r\n";
+        email_data << "--boundary123--\r\n";
     } else {
-        email_data << "Content-Type: text/plain; charset=UTF-8\n";
-        email_data << "\n";
-        email_data << email.body << "\n";
+        email_data << "Content-Type: text/plain; charset=UTF-8\r\n";
+        email_data << "\r\n";
+        email_data << email.body << "\r\n";
     }
     
     return email_data.str();

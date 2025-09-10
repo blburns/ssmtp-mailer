@@ -292,7 +292,7 @@ private:
     std::string getCurrentTimestamp();
     std::string base64Encode(const std::string& input);
     SMTPAuthMethod stringToAuthMethod(const std::string& method);
-    SMTPResult sendViaSystemCommand(const Email& email, const DomainConfig* domain_config);
+    SMTPResult sendViaCurl(const Email& email, const DomainConfig* domain_config);
 };
 
 } // namespace ssmtp_mailer
