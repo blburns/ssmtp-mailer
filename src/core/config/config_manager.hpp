@@ -280,6 +280,11 @@ private:
      */
     bool parseSection(const std::string& section_name, 
                      const std::map<std::string, std::string>& key_value_pairs);
+    
+    /**
+     * @brief Set up default configurations
+     */
+    void setupDefaultConfigs();
 
 private:
     GlobalConfig global_config_;
