@@ -6,6 +6,9 @@
 #include <filesystem>
 #include <cstdlib>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 namespace ssmtp_mailer {
 
 // Authentication command implementations
@@ -300,3 +303,5 @@ CLIResult AuthCommands::testServiceAccount(const std::vector<std::string>& args)
 }
 
 } // namespace ssmtp_mailer
+
+#pragma clang diagnostic pop

@@ -10,6 +10,9 @@
 #include <iomanip>
 #include <cstdlib>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 namespace ssmtp_mailer {
 
 // Validation command implementations
@@ -510,3 +513,5 @@ namespace {
 }
 
 } // namespace ssmtp_mailer
+
+#pragma clang diagnostic pop

@@ -7,6 +7,9 @@
 #include <ctime>
 #include <iomanip>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 namespace ssmtp_mailer {
 
 namespace {
@@ -362,3 +365,5 @@ CLIResult TemplateCommands::listAddressTemplates(const std::vector<std::string>&
     }
 
 } // namespace ssmtp_mailer
+
+#pragma clang diagnostic pop

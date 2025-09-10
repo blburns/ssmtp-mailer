@@ -6,6 +6,9 @@
 #include <iomanip>
 #include <algorithm>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 namespace ssmtp_mailer {
 
 CLIManager::CLIManager() : initialized_(false) {
@@ -341,3 +344,5 @@ void CLIManager::registerSetupCommands() {
 }
 
 } // namespace ssmtp_mailer
+
+#pragma clang diagnostic pop

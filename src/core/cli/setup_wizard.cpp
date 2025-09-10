@@ -7,6 +7,9 @@
 #include <ctime>
 #include <iomanip>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 namespace ssmtp_mailer {
 
 // Interactive setup wizard
@@ -478,3 +481,5 @@ std::string SetupWizard::promptPassword(const std::string& prompt) {
     }
 
 } // namespace ssmtp_mailer
+
+#pragma clang diagnostic pop

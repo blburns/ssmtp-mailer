@@ -8,6 +8,9 @@
 #include <ctime>
 #include <iomanip>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 namespace ssmtp_mailer {
 
 // Configuration command implementations
@@ -369,3 +372,5 @@ CLIResult ConfigCommands::showGlobalConfig(const std::vector<std::string>& args)
 }
 
 } // namespace ssmtp_mailer
+
+#pragma clang diagnostic pop
