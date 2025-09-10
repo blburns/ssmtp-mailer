@@ -3,6 +3,7 @@
 #include <vector>
 #include "ssmtp-mailer/mailer.hpp"
 #include "ssmtp-mailer/unified_mailer.hpp"
+#include "ssmtp-mailer/cli_manager.hpp"
 #include "core/logging/logger.hpp"
 
 void printUsage() {
@@ -21,6 +22,7 @@ void printUsage() {
     std::cout << "  config               Show configuration status" << std::endl;
     std::cout << "  queue                Manage email queue" << std::endl;
     std::cout << "  api                  Manage API configurations" << std::endl;
+    std::cout << "  cli                  Configuration management CLI" << std::endl;
     
     std::cout << "\nQueue Subcommands:" << std::endl;
     std::cout << "  start                Start the email processing queue" << std::endl;
@@ -366,6 +368,37 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Usage: queue [start|stop|status|add|list|failed]" << std::endl;
                 return 1;
             }
+            
+        } else if (command == "cli") {
+            // Initialize CLI manager
+            ssmtp_mailer::CLIManager cli_manager;
+            if (!cli_manager.initialize()) {
+                std::cerr << "Error: Failed to initialize CLI manager" << std::endl;
+                return 1;
+            }
+            
+            // Parse CLI command
+            if (args.size() < 2) {
+                cli_manager.printHelp();
+                return 0;
+            }
+            
+            std::string cli_command = args[1];
+            std::vector<std::string> cli_args(args.begin() + 2, args.end());
+            
+            // Execute CLI command
+            auto result = cli_manager.executeCommand(cli_command, cli_args);
+            
+            if (!result.success) {
+                std::cerr << "Error: " << result.message << std::endl;
+                return result.exit_code;
+            }
+            
+            if (!result.message.empty()) {
+                std::cout << result.message << std::endl;
+            }
+            
+            return 0;
             
         } else {
             std::cerr << "Error: Unknown command: " << command << std::endl;
