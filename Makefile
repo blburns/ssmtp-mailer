@@ -379,7 +379,7 @@ debug: $(BUILD_DIR)
 	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j$(PARALLEL_JOBS)
 
 # Release build
-release: $(BUILD_DIR)
+build-release: $(BUILD_DIR)
 	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(PARALLEL_JOBS)
 
 # Static analysis

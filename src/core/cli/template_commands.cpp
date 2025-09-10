@@ -1,5 +1,5 @@
 #include "ssmtp-mailer/cli_commands.hpp"
-#include "core/logging/logger.hpp"
+#include "../logging/logger.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>

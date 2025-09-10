@@ -1,7 +1,7 @@
 #include "ssmtp-mailer/cli_manager.hpp"
-#include "core/config/config_manager.hpp"
+#include "../config/config_manager.hpp"
 #include "ssmtp-mailer/cli_commands.hpp"
-#include "core/logging/logger.hpp"
+#include "../logging/logger.hpp"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
