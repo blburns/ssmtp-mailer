@@ -1,4 +1,5 @@
 #include "ssmtp-mailer/cli_commands.hpp"
+#include "ssmtp-mailer/config_utils.hpp"
 #include "core/logging/logger.hpp"
 #include <iostream>
 #include <string>
@@ -182,8 +183,11 @@ bool SetupWizard::setupGlobalConfig() {
         std::string log_level = promptInput("Log level (DEBUG/INFO/WARN/ERROR)", "INFO");
         
         // Create global configuration
-        std::string config_dir = "/etc/ssmtp-mailer";
-        std::filesystem::create_directories(config_dir);
+        std::string config_dir = ConfigUtils::getConfigDirectory();
+        if (!ConfigUtils::ensureConfigDirectory(config_dir)) {
+            std::cerr << "Failed to create configuration directory: " << config_dir << std::endl;
+            return false;
+        }
         
         std::string config_file = config_dir + "/ssmtp-mailer.conf";
         std::ofstream file(config_file);

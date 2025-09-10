@@ -1,5 +1,6 @@
 #include "ssmtp-mailer/cli_commands.hpp"
-#include "core/config/config_manager.hpp"
+#include "ssmtp-mailer/config_manager.hpp"
+#include "ssmtp-mailer/config_utils.hpp"
 #include "core/logging/logger.hpp"
 #include <iostream>
 #include <fstream>
@@ -58,12 +59,14 @@ CLIResult ConfigCommands::addDomain(const std::vector<std::string>& args) {
         }
         
         // Create domain configuration file
-        std::string config_dir = "/etc/ssmtp-mailer/domains";
+        std::string config_dir = ConfigUtils::getDomainsDirectory();
         std::string config_file = config_dir + "/" + domain + ".conf";
         
         try {
             // Ensure directory exists
-            std::filesystem::create_directories(config_dir);
+            if (!ConfigUtils::ensureConfigDirectory(config_dir)) {
+                return CLIResult::error_result("Failed to create configuration directory: " + config_dir);
+            }
             
             // Create configuration content
             std::ostringstream config_content;
@@ -101,7 +104,7 @@ CLIResult ConfigCommands::addDomain(const std::vector<std::string>& args) {
     }
     
 CLIResult ConfigCommands::listDomains(const std::vector<std::string>& args) {
-        std::string domains_dir = "/etc/ssmtp-mailer/domains";
+        std::string domains_dir = ConfigUtils::getDomainsDirectory();
         
         try {
             if (!std::filesystem::exists(domains_dir)) {
@@ -130,7 +133,7 @@ CLIResult ConfigCommands::showDomain(const std::vector<std::string>& args) {
         }
         
         std::string domain = args[0];
-        std::string config_file = "/etc/ssmtp-mailer/domains/" + domain + ".conf";
+        std::string config_file = ConfigUtils::getDomainsDirectory() + "/" + domain + ".conf";
         
         try {
             if (!std::filesystem::exists(config_file)) {
@@ -230,12 +233,14 @@ CLIResult ConfigCommands::addUser(const std::vector<std::string>& args) {
         }
         
         // Create user configuration file
-        std::string config_dir = "/etc/ssmtp-mailer/users";
+        std::string config_dir = ConfigUtils::getUsersDirectory();
         std::string config_file = config_dir + "/" + email + ".conf";
         
         try {
             // Ensure directory exists
-            std::filesystem::create_directories(config_dir);
+            if (!ConfigUtils::ensureConfigDirectory(config_dir)) {
+                return CLIResult::error_result("Failed to create configuration directory: " + config_dir);
+            }
             
             // Create configuration content
             std::ostringstream config_content;
@@ -283,7 +288,7 @@ CLIResult ConfigCommands::addUser(const std::vector<std::string>& args) {
     }
     
 CLIResult ConfigCommands::listUsers(const std::vector<std::string>& args) {
-        std::string users_dir = "/etc/ssmtp-mailer/users";
+        std::string users_dir = ConfigUtils::getUsersDirectory();
         std::string filter_domain;
         
         // Parse arguments
@@ -330,7 +335,7 @@ CLIResult ConfigCommands::listUsers(const std::vector<std::string>& args) {
     }
     
 CLIResult ConfigCommands::showGlobalConfig(const std::vector<std::string>& args) {
-    std::string config_file = "/etc/ssmtp-mailer/ssmtp-mailer.conf";
+        std::string config_file = ConfigUtils::getConfigDirectory() + "/ssmtp-mailer.conf";
     
     try {
         if (!std::filesystem::exists(config_file)) {
