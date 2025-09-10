@@ -37,6 +37,19 @@ CLIResult CLIManager::executeCommand(const std::string& command, const std::vect
         return CLIResult::error_result("CLI manager not initialized");
     }
     
+    // Check for help requests
+    if (command == "help" || (!args.empty() && (args[0] == "--help" || args[0] == "-h"))) {
+        if (command == "help" && args.size() > 1) {
+            // Specific command help
+            std::string help_text = getCommandHelp(args[1]);
+            return CLIResult::success_result(help_text);
+        } else {
+            // General help
+            printHelp();
+            return CLIResult::success_result();
+        }
+    }
+    
     auto it = commands_.find(command);
     if (it == commands_.end()) {
         // Check aliases
@@ -46,6 +59,12 @@ CLIResult CLIManager::executeCommand(const std::string& command, const std::vect
             }
         }
         return CLIResult::error_result("Unknown command: " + command);
+    }
+    
+    // Check if this specific command was called with --help
+    if (!args.empty() && (args[0] == "--help" || args[0] == "-h")) {
+        std::string help_text = getCommandHelp(command);
+        return CLIResult::success_result(help_text);
     }
     
     try {
@@ -88,25 +107,28 @@ void CLIManager::printHelp() const {
     std::cout << "\nssmtp-mailer CLI - Configuration Management Tool\n";
     std::cout << "================================================\n\n";
     
+    std::cout << "The CLI provides comprehensive configuration management for ssmtp-mailer.\n";
+    std::cout << "Use it to set up domains, users, authentication, templates, and more.\n\n";
+    
     std::cout << "Available Commands:\n\n";
     
-    // Group commands by category
+    // Group commands by category with detailed descriptions
     std::map<std::string, std::vector<std::pair<std::string, std::string>>> categories;
     
     for (const auto& cmd : commands_) {
         std::string category = "General";
         if (cmd.first.find("config") == 0) {
-            category = "Configuration";
+            category = "Configuration Management";
         } else if (cmd.first.find("auth") == 0) {
-            category = "Authentication";
+            category = "Authentication Management";
         } else if (cmd.first.find("template") == 0) {
-            category = "Templates";
+            category = "Template Management";
         } else if (cmd.first.find("api") == 0) {
-            category = "API Management";
+            category = "API Provider Management";
         } else if (cmd.first.find("validate") == 0 || cmd.first.find("test") == 0) {
             category = "Validation & Testing";
         } else if (cmd.first.find("setup") == 0) {
-            category = "Setup & Wizards";
+            category = "Interactive Setup";
         }
         
         categories[category].push_back({cmd.first, cmd.second.description});
@@ -114,14 +136,26 @@ void CLIManager::printHelp() const {
     
     for (const auto& category : categories) {
         std::cout << category.first << ":\n";
+        std::cout << std::string(category.first.length() + 1, '-') << "\n";
         for (const auto& cmd : category.second) {
-            std::cout << "  " << std::setw(20) << std::left << cmd.first 
+            std::cout << "  " << std::setw(25) << std::left << cmd.first 
                       << " " << cmd.second << "\n";
         }
         std::cout << "\n";
     }
     
-    std::cout << "Use 'ssmtp-mailer cli <command> --help' for detailed help on a specific command.\n";
+    std::cout << "Quick Start Examples:\n";
+    std::cout << "  ssmtp-mailer cli setup wizard                    # Interactive setup\n";
+    std::cout << "  ssmtp-mailer cli config domain add example.com   # Add domain\n";
+    std::cout << "  ssmtp-mailer cli config user add user@example.com # Add user\n";
+    std::cout << "  ssmtp-mailer cli validate config                 # Validate setup\n\n";
+    
+    std::cout << "For detailed help on a specific command:\n";
+    std::cout << "  ssmtp-mailer cli <command> --help\n";
+    std::cout << "  ssmtp-mailer cli config-domain-add --help\n\n";
+    
+    std::cout << "For general help:\n";
+    std::cout << "  ssmtp-mailer --help\n";
 }
 
 bool CLIManager::commandExists(const std::string& command) const {
@@ -140,6 +174,22 @@ bool CLIManager::commandExists(const std::string& command) const {
 }
 
 void CLIManager::registerCommands() {
+    // Register help command first
+    commands_["help"] = CLICommand(
+        "help",
+        "Show help information",
+        "help [command]",
+        [this](const std::vector<std::string>& args) -> CLIResult {
+            if (args.empty()) {
+                printHelp();
+                return CLIResult::success_result();
+            } else {
+                std::string help_text = getCommandHelp(args[0]);
+                return CLIResult::success_result(help_text);
+            }
+        }
+    );
+    
     registerConfigCommands();
     registerAuthCommands();
     registerTemplateCommands();

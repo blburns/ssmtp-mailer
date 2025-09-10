@@ -24,6 +24,44 @@ void printUsage() {
     std::cout << "  api                  Manage API configurations" << std::endl;
     std::cout << "  cli                  Configuration management CLI" << std::endl;
     
+    std::cout << "\nCLI Subcommands:" << std::endl;
+    std::cout << "  Configuration Management:" << std::endl;
+    std::cout << "    cli config domain add <domain> --smtp-server <server> --port <port> [options]" << std::endl;
+    std::cout << "    cli config domain list" << std::endl;
+    std::cout << "    cli config domain show <domain>" << std::endl;
+    std::cout << "    cli config user add <email> --domain <domain> [options]" << std::endl;
+    std::cout << "    cli config user list [--domain <domain>]" << std::endl;
+    std::cout << "    cli config global show" << std::endl;
+    
+    std::cout << "\n  Authentication Management:" << std::endl;
+    std::cout << "    cli auth oauth2 setup --provider <google|microsoft> --domain <domain>" << std::endl;
+    std::cout << "    cli auth oauth2 test --domain <domain>" << std::endl;
+    std::cout << "    cli auth service-account add --domain <domain> --file <json-file>" << std::endl;
+    std::cout << "    cli auth service-account list" << std::endl;
+    std::cout << "    cli auth service-account test --domain <domain>" << std::endl;
+    
+    std::cout << "\n  Template Management:" << std::endl;
+    std::cout << "    cli template create <name> --subject <subject> --body <body> [--html <html>]" << std::endl;
+    std::cout << "    cli template list" << std::endl;
+    std::cout << "    cli template show <name>" << std::endl;
+    std::cout << "    cli template test <name> --to <email> [--from <email>]" << std::endl;
+    std::cout << "    cli template address create <pattern> --domain <domain> --types <types>" << std::endl;
+    std::cout << "    cli template address list" << std::endl;
+    
+    std::cout << "\n  Validation & Testing:" << std::endl;
+    std::cout << "    cli validate config [--fix] [--verbose]" << std::endl;
+    std::cout << "    cli test connections [--smtp-only] [--api-only] [--domain <domain>]" << std::endl;
+    std::cout << "    cli config backup [--file <backup-file>]" << std::endl;
+    std::cout << "    cli config restore --file <backup-file>" << std::endl;
+    
+    std::cout << "\n  Interactive Setup:" << std::endl;
+    std::cout << "    cli setup wizard" << std::endl;
+    std::cout << "    cli setup domain <domain>" << std::endl;
+    
+    std::cout << "\n  API Provider Management:" << std::endl;
+    std::cout << "    cli api provider add <provider> --api-key <key> --sender <email>" << std::endl;
+    std::cout << "    cli api provider list" << std::endl;
+    
     std::cout << "\nQueue Subcommands:" << std::endl;
     std::cout << "  start                Start the email processing queue" << std::endl;
     std::cout << "  stop                 Stop the email processing queue" << std::endl;
@@ -33,13 +71,28 @@ void printUsage() {
     std::cout << "  failed               List failed emails" << std::endl;
     
     std::cout << "\nExamples:" << std::endl;
+    std::cout << "  # Basic email sending:" << std::endl;
     std::cout << "  ssmtp-mailer send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
     std::cout << "  ssmtp-mailer send-api --provider sendgrid --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
+    
+    std::cout << "\n  # Queue management:" << std::endl;
     std::cout << "  ssmtp-mailer queue add --from user@example.com --to recipient@domain.com --subject 'Queued' --body 'Hello'" << std::endl;
     std::cout << "  ssmtp-mailer queue start" << std::endl;
     std::cout << "  ssmtp-mailer queue status" << std::endl;
+    
+    std::cout << "\n  # Testing connections:" << std::endl;
     std::cout << "  ssmtp-mailer test" << std::endl;
     std::cout << "  ssmtp-mailer test-api --provider sendgrid" << std::endl;
+    
+    std::cout << "\n  # CLI configuration management:" << std::endl;
+    std::cout << "  ssmtp-mailer cli setup wizard" << std::endl;
+    std::cout << "  ssmtp-mailer cli config domain add example.com --smtp-server smtp.gmail.com --port 587" << std::endl;
+    std::cout << "  ssmtp-mailer cli config user add user@example.com --domain example.com" << std::endl;
+    std::cout << "  ssmtp-mailer cli auth oauth2 setup --provider google --domain example.com" << std::endl;
+    std::cout << "  ssmtp-mailer cli template create welcome --subject 'Welcome!' --body 'Welcome to our service!'" << std::endl;
+    std::cout << "  ssmtp-mailer cli validate config --verbose" << std::endl;
+    
+    std::cout << "\n  # Using custom config:" << std::endl;
     std::cout << "  ssmtp-mailer --config /path/to/config.conf send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
 }
 
