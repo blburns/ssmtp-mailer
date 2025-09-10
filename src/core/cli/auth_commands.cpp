@@ -297,7 +297,6 @@ CLIResult AuthCommands::testServiceAccount(const std::vector<std::string>& args)
         } catch (const std::exception& e) {
             return CLIResult::error_result("Failed to test service account: " + std::string(e.what()));
         }
-    }
 }
 
 } // namespace ssmtp_mailer

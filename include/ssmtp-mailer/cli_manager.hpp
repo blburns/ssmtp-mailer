@@ -39,6 +39,7 @@ struct CLICommand {
     std::vector<std::string> aliases;
     std::function<CLIResult(const std::vector<std::string>&)> handler;
     
+    CLICommand() = default;
     CLICommand(const std::string& n, const std::string& desc, 
                const std::string& use,
                std::function<CLIResult(const std::vector<std::string>&)> h)

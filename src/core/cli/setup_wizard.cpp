@@ -476,6 +476,5 @@ std::string SetupWizard::promptPassword(const std::string& prompt) {
         
         return password;
     }
-}
 
 } // namespace ssmtp_mailer
