@@ -6,10 +6,11 @@
 #include <filesystem>
 #include <cstdlib>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunknown-pragmas"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 
 namespace ssmtp_mailer {
 
@@ -306,4 +307,4 @@ CLIResult AuthCommands::testServiceAccount(const std::vector<std::string>& args)
 
 } // namespace ssmtp_mailer
 
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop

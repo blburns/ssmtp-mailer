@@ -125,6 +125,7 @@ if(PLATFORM_MACOS)
     # Set macOS-specific compiler flags
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-function -Wno-unused-but-set-variable")
     
     # Enable universal binary support for Intel + Apple Silicon
     if(CMAKE_OSX_ARCHITECTURES MATCHES ".*arm64.*")
@@ -148,6 +149,7 @@ elseif(PLATFORM_LINUX)
     # Linux compiler flags
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-function -Wno-unused-but-set-variable")
     
 elseif(PLATFORM_WINDOWS)
     # Windows specific libraries

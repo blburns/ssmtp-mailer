@@ -7,10 +7,11 @@
 #include <ctime>
 #include <iomanip>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunknown-pragmas"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 
 namespace ssmtp_mailer {
 
@@ -368,4 +369,4 @@ CLIResult TemplateCommands::listAddressTemplates(const std::vector<std::string>&
 
 } // namespace ssmtp_mailer
 
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
