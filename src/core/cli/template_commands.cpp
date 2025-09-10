@@ -360,6 +360,5 @@ CLIResult TemplateCommands::listAddressTemplates(const std::vector<std::string>&
             return CLIResult::error_result("Failed to list address templates: " + std::string(e.what()));
         }
     }
-}
 
 } // namespace ssmtp_mailer
