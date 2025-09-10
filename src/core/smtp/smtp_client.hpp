@@ -134,13 +134,6 @@ private:
     void cleanupSSL();
     
     /**
-     * @brief Send SMTP command
-     * @param command SMTP command to send
-     * @return true if successful, false otherwise
-     */
-    bool sendCommand(const std::string& command);
-    
-    /**
      * @brief Read SMTP response
      * @param response Response string to store result
      * @return SMTP response code
@@ -271,8 +264,8 @@ private:
 private:
     const ConfigManager& config_;
     int socket_fd_;
-    SSL* ssl_;
-    SSL_CTX* ssl_ctx_;
+    SSL_CTX* ssl_context_;
+    SSL* ssl_connection_;
     SMTPState state_;
     std::string server_;
     int port_;
@@ -289,6 +282,17 @@ private:
     int connection_timeout_;
     int read_timeout_;
     int write_timeout_;
+    
+    // Helper methods
+    bool setupSSL();
+    std::string readResponse();
+    bool sendCommand(const std::string& command);
+    SMTPResult sendEmailData(const Email& email);
+    std::string buildEmailData(const Email& email);
+    std::string getCurrentTimestamp();
+    std::string base64Encode(const std::string& input);
+    SMTPAuthMethod stringToAuthMethod(const std::string& method);
+    SMTPResult sendViaSystemCommand(const Email& email, const DomainConfig* domain_config);
 };
 
 } // namespace ssmtp_mailer
