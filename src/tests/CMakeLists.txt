@@ -1,7 +1,7 @@
-# Tests CMakeLists.txt for ssmtp-mailer
+# Tests CMakeLists.txt for simple-smtp-mailer
 
 # Add test executable
-add_executable(ssmtp-mailer-tests-${SYSTEM_ARCH}
+add_executable(simple-smtp-mailer-tests-${SYSTEM_ARCH}
     test_main.cpp
     # Add more test source files here when they exist
     # test_smtp.cpp

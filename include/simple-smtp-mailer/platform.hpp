@@ -49,17 +49,17 @@
     inline std::string getConfigDir() {
         char appDataPath[MAX_PATH];
         if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_COMMON_APPDATA, NULL, 0, appDataPath))) {
-            return std::string(appDataPath) + "\\ssmtp-mailer";
+            return std::string(appDataPath) + "\\simple-smtp-mailer";
         }
-        return "C:\\Program Files\\ssmtp-mailer\\config";
+        return "C:\\Program Files\\simple-smtp-mailer\\config";
     }
     
     inline std::string getLogDir() {
         char appDataPath[MAX_PATH];
         if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_COMMON_APPDATA, NULL, 0, appDataPath))) {
-            return std::string(appDataPath) + "\\ssmtp-mailer\\logs";
+            return std::string(appDataPath) + "\\simple-smtp-mailer\\logs";
         }
-        return "C:\\Program Files\\ssmtp-mailer\\logs";
+        return "C:\\Program Files\\simple-smtp-mailer\\logs";
     }
     
 #else
@@ -100,9 +100,9 @@
     // POSIX file operations
     inline std::string getConfigDir() {
         #ifdef __APPLE__
-            return "/usr/local/etc/ssmtp-mailer";
+            return "/usr/local/etc/simple-smtp-mailer";
         #else
-            return "/etc/ssmtp-mailer";
+            return "/etc/simple-smtp-mailer";
         #endif
     }
     

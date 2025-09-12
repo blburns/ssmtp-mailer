@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "ssmtp-mailer/api_client.hpp"
-#include "ssmtp-mailer/http_client.hpp"
+#include "simple-smtp-mailer/api_client.hpp"
+#include "simple-smtp-mailer/http_client.hpp"
 
 void testHTTPClient() {
     std::cout << "Testing HTTP Client..." << std::endl;

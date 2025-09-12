@@ -1,4 +1,4 @@
-# ssmtp-mailer Configuration File
+# simple-smtp-mailer Configuration File
 # This file contains global settings for the mailer application
 
 [global]
@@ -9,14 +9,14 @@ default_hostname = localhost
 default_from = noreply@localhost
 
 # Configuration directory paths
-config_dir = /etc/ssmtp-mailer
-domains_dir = /etc/ssmtp-mailer/domains
-users_dir = /etc/ssmtp-mailer/users
-mappings_dir = /etc/ssmtp-mailer/mappings
-ssl_dir = /etc/ssmtp-mailer/ssl
+config_dir = /etc/simple-smtp-mailer
+domains_dir = /etc/simple-smtp-mailer/domains
+users_dir = /etc/simple-smtp-mailer/users
+mappings_dir = /etc/simple-smtp-mailer/mappings
+ssl_dir = /etc/simple-smtp-mailer/ssl
 
 # Logging configuration
-log_file = /var/log/ssmtp-mailer.log
+log_file = /var/log/simple-smtp-mailer.log
 log_level = INFO
 
 # Connection settings

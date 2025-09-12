@@ -1,4 +1,4 @@
-#include "ssmtp-mailer/cli_commands.hpp"
+#include "simple-smtp-mailer/cli_commands.hpp"
 #include "../config/config_manager.hpp"
 #include "../logging/logger.hpp"
 #include <iostream>
@@ -134,12 +134,12 @@ CLIResult ValidationCommands::backupConfig(const std::vector<std::string>& args)
             auto now = std::time(nullptr);
             auto tm = *std::localtime(&now);
             std::ostringstream oss;
-            oss << "ssmtp-mailer-backup-" << std::put_time(&tm, "%Y%m%d-%H%M%S") << ".tar.gz";
+            oss << "simple-smtp-mailer-backup-" << std::put_time(&tm, "%Y%m%d-%H%M%S") << ".tar.gz";
             backup_file = oss.str();
         }
         
         try {
-            std::string config_dir = "/etc/ssmtp-mailer";
+            std::string config_dir = "/etc/simple-smtp-mailer";
             std::string backup_command = "tar -czf " + backup_file + " -C " + config_dir + " .";
             
             int result = std::system(backup_command.c_str());
@@ -178,13 +178,13 @@ CLIResult ValidationCommands::restoreConfig(const std::vector<std::string>& args
         }
         
         try {
-            std::string config_dir = "/etc/ssmtp-mailer";
+            std::string config_dir = "/etc/simple-smtp-mailer";
             
             // Create backup of current config before restore
             auto now = std::time(nullptr);
             auto tm = *std::localtime(&now);
             std::ostringstream oss;
-            oss << "ssmtp-mailer-pre-restore-" << std::put_time(&tm, "%Y%m%d-%H%M%S") << ".tar.gz";
+            oss << "simple-smtp-mailer-pre-restore-" << std::put_time(&tm, "%Y%m%d-%H%M%S") << ".tar.gz";
             std::string pre_restore_backup = oss.str();
             
             std::string backup_current = "tar -czf " + pre_restore_backup + " -C " + config_dir + " .";
@@ -213,7 +213,7 @@ namespace {
     void validateGlobalConfig(std::vector<std::string>& errors, 
                                    std::vector<std::string>& warnings, 
                                    bool verbose) {
-        std::string config_file = "/etc/ssmtp-mailer/ssmtp-mailer.conf";
+        std::string config_file = "/etc/simple-smtp-mailer/simple-smtp-mailer.conf";
         
         if (!std::filesystem::exists(config_file)) {
             errors.push_back("Global configuration file not found: " + config_file);
@@ -235,7 +235,7 @@ namespace {
     void validateDomainConfigs(std::vector<std::string>& errors, 
                                     std::vector<std::string>& warnings, 
                                     bool verbose) {
-        std::string domains_dir = "/etc/ssmtp-mailer/domains";
+        std::string domains_dir = "/etc/simple-smtp-mailer/domains";
         
         if (!std::filesystem::exists(domains_dir)) {
             warnings.push_back("Domains directory not found: " + domains_dir);
@@ -294,7 +294,7 @@ namespace {
     void validateUserConfigs(std::vector<std::string>& errors, 
                                   std::vector<std::string>& warnings, 
                                   bool verbose) {
-        std::string users_dir = "/etc/ssmtp-mailer/users";
+        std::string users_dir = "/etc/simple-smtp-mailer/users";
         
         if (!std::filesystem::exists(users_dir)) {
             warnings.push_back("Users directory not found: " + users_dir);
@@ -342,7 +342,7 @@ namespace {
     void validateOAuth2Configs(std::vector<std::string>& errors, 
                                     std::vector<std::string>& warnings, 
                                     bool verbose) {
-        std::string oauth2_dir = "/etc/ssmtp-mailer/oauth2";
+        std::string oauth2_dir = "/etc/simple-smtp-mailer/oauth2";
         
         if (!std::filesystem::exists(oauth2_dir)) {
             if (verbose) {
@@ -397,7 +397,7 @@ namespace {
     void validateServiceAccountConfigs(std::vector<std::string>& errors, 
                                             std::vector<std::string>& warnings, 
                                             bool verbose) {
-        std::string service_account_dir = "/etc/ssmtp-mailer/service-accounts";
+        std::string service_account_dir = "/etc/simple-smtp-mailer/service-accounts";
         
         if (!std::filesystem::exists(service_account_dir)) {
             if (verbose) {
@@ -444,7 +444,7 @@ namespace {
     void validateTemplates(std::vector<std::string>& errors, 
                                 std::vector<std::string>& warnings, 
                                 bool verbose) {
-        std::string templates_dir = "/etc/ssmtp-mailer/templates";
+        std::string templates_dir = "/etc/simple-smtp-mailer/templates";
         
         if (!std::filesystem::exists(templates_dir)) {
             if (verbose) {

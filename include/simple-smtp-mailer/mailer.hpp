@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-#include "ssmtp-mailer/queue_types.hpp"
+#include "simple-smtp-mailer/queue_types.hpp"
 
 namespace ssmtp_mailer {
 

@@ -1,6 +1,6 @@
-#include "ssmtp-mailer/cli_manager.hpp"
+#include "simple-smtp-mailer/cli_manager.hpp"
 #include "../config/config_manager.hpp"
-#include "ssmtp-mailer/cli_commands.hpp"
+#include "simple-smtp-mailer/cli_commands.hpp"
 #include "../logging/logger.hpp"
 #include <iostream>
 #include <iomanip>
@@ -107,10 +107,10 @@ std::string CLIManager::getCommandHelp(const std::string& command) const {
 }
 
 void CLIManager::printHelp() const {
-    std::cout << "\nssmtp-mailer CLI - Configuration Management Tool\n";
+    std::cout << "\nsimple-smtp-mailer CLI - Configuration Management Tool\n";
     std::cout << "================================================\n\n";
     
-    std::cout << "The CLI provides comprehensive configuration management for ssmtp-mailer.\n";
+    std::cout << "The CLI provides comprehensive configuration management for simple-smtp-mailer.\n";
     std::cout << "Use it to set up domains, users, authentication, templates, and more.\n\n";
     
     std::cout << "Available Commands:\n\n";
@@ -148,17 +148,17 @@ void CLIManager::printHelp() const {
     }
     
     std::cout << "Quick Start Examples:\n";
-    std::cout << "  ssmtp-mailer cli setup wizard                    # Interactive setup\n";
-    std::cout << "  ssmtp-mailer cli config domain add example.com   # Add domain\n";
-    std::cout << "  ssmtp-mailer cli config user add user@example.com # Add user\n";
-    std::cout << "  ssmtp-mailer cli validate config                 # Validate setup\n\n";
+    std::cout << "  simple-smtp-mailer cli setup wizard                    # Interactive setup\n";
+    std::cout << "  simple-smtp-mailer cli config domain add example.com   # Add domain\n";
+    std::cout << "  simple-smtp-mailer cli config user add user@example.com # Add user\n";
+    std::cout << "  simple-smtp-mailer cli validate config                 # Validate setup\n\n";
     
     std::cout << "For detailed help on a specific command:\n";
-    std::cout << "  ssmtp-mailer cli <command> --help\n";
-    std::cout << "  ssmtp-mailer cli config-domain-add --help\n\n";
+    std::cout << "  simple-smtp-mailer cli <command> --help\n";
+    std::cout << "  simple-smtp-mailer cli config-domain-add --help\n\n";
     
     std::cout << "For general help:\n";
-    std::cout << "  ssmtp-mailer --help\n";
+    std::cout << "  simple-smtp-mailer --help\n";
 }
 
 bool CLIManager::commandExists(const std::string& command) const {

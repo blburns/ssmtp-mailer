@@ -1,4 +1,4 @@
-# API Configuration for ssmtp-mailer
+# API Configuration for simple-smtp-mailer
 # This file configures API-based email sending for various providers
 
 [api:sendgrid]

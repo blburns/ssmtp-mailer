@@ -1,4 +1,4 @@
-#include "ssmtp-mailer/config_utils.hpp"
+#include "simple-smtp-mailer/config_utils.hpp"
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
@@ -76,7 +76,7 @@ std::string ConfigUtils::getUserHomeDirectory() {
 }
 
 std::string ConfigUtils::getSystemConfigDirectory() {
-    return "/etc/ssmtp-mailer";
+    return "/etc/simple-smtp-mailer";
 }
 
 std::string ConfigUtils::getUserConfigDirectory() {
@@ -84,7 +84,7 @@ std::string ConfigUtils::getUserConfigDirectory() {
     if (home.empty()) {
         return "";
     }
-    return home + "/.config/ssmtp-mailer";
+    return home + "/.config/simple-smtp-mailer";
 }
 
 std::string ConfigUtils::getEnvironmentVariable(const std::string& name) {

@@ -7,9 +7,9 @@
 #include <mutex>
 #include <map>
 #include <chrono>
-#include "ssmtp-mailer/mailer.hpp"
-#include "ssmtp-mailer/api_client.hpp"
-#include "ssmtp-mailer/queue_types.hpp"
+#include "simple-smtp-mailer/mailer.hpp"
+#include "simple-smtp-mailer/api_client.hpp"
+#include "simple-smtp-mailer/queue_types.hpp"
 
 namespace ssmtp_mailer {
 

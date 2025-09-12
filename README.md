@@ -1,4 +1,4 @@
-# 🚀 ssmtp-mailer
+# 🚀 simple-smtp-mailer
 
 **High-performance SMTP mailer with queue management and OAuth2 support**
 
@@ -63,8 +63,8 @@
 #### macOS
 ```bash
 # Clone the repository
-git clone https://github.com/blburns/ssmtp-mailer.git
-cd ssmtp-mailer
+git clone https://github.com/blburns/simple-smtp-mailer.git
+cd simple-smtp-mailer
 
 # Install dependencies
 make deps
@@ -76,14 +76,14 @@ make build-script
 make package-dmg
 
 # Install (double-click the DMG or use installer)
-sudo installer -pkg dist/ssmtp-mailer-*.pkg -target /
+sudo installer -pkg dist/simple-smtp-mailer-*.pkg -target /
 ```
 
 #### Linux
 ```bash
 # Clone the repository
-git clone https://github.com/blburns/ssmtp-mailer.git
-cd ssmtp-mailer
+git clone https://github.com/blburns/simple-smtp-mailer.git
+cd simple-smtp-mailer
 
 # Install dependencies
 make deps
@@ -101,13 +101,13 @@ sudo make install
 ### First Run
 ```bash
 # Test installation
-ssmtp-mailer --version
+simple-smtp-mailer --version
 
 # View help
-ssmtp-mailer --help
+simple-smtp-mailer --help
 
 # Check configuration
-ssmtp-mailer --config-check
+simple-smtp-mailer --config-check
 ```
 
 ## 📦 Installation
@@ -149,22 +149,22 @@ make package-custom
 
 ### Installation Paths
 ```
-/usr/local/bin/ssmtp-mailer          # Main executable
-/usr/local/lib/libssmtp-mailer.dylib # Shared library
-/usr/local/include/ssmtp-mailer/     # Header files
-/etc/ssmtp-mailer/                   # Configuration files
-/var/log/ssmtp-mailer/               # Log files
+/usr/local/bin/simple-smtp-mailer          # Main executable
+/usr/local/lib/libsimple-smtp-mailer.dylib # Shared library
+/usr/local/include/simple-smtp-mailer/     # Header files
+/etc/simple-smtp-mailer/                   # Configuration files
+/var/log/simple-smtp-mailer/               # Log files
 ```
 
 ## ⚙️ Configuration
 
 ### Main Configuration File
 ```ini
-# /etc/ssmtp-mailer/ssmtp-mailer.conf
+# /etc/simple-smtp-mailer/simple-smtp-mailer.conf
 
 [General]
 log_level = INFO
-log_file = /var/log/ssmtp-mailer/ssmtp-mailer.log
+log_file = /var/log/simple-smtp-mailer/simple-smtp-mailer.log
 max_log_size = 10
 max_log_files = 5
 
@@ -188,7 +188,7 @@ min_tls_version = 1.2
 
 ### OAuth2 Configuration
 ```ini
-# /etc/ssmtp-mailer/auth/auth.conf
+# /etc/simple-smtp-mailer/auth/auth.conf
 
 [Service_Accounts]
 google_service_account_file = /path/to/service-account.json
@@ -201,7 +201,7 @@ microsoft_client_secret = your-client-secret
 
 ### Email Templates
 ```ini
-# /etc/ssmtp-mailer/templates/email.conf
+# /etc/simple-smtp-mailer/templates/email.conf
 
 [Templates]
 welcome_subject = Welcome to our service
@@ -217,55 +217,55 @@ notification_body = You have an important notification.
 #### Basic Usage
 ```bash
 # Send a simple email
-ssmtp-mailer send --to user@example.com --subject "Hello" --body "Message body"
+simple-smtp-mailer send --to user@example.com --subject "Hello" --body "Message body"
 
 # Send with attachments
-ssmtp-mailer send --to user@example.com --subject "Report" --body "See attached" --attach report.pdf
+simple-smtp-mailer send --to user@example.com --subject "Report" --body "See attached" --attach report.pdf
 
 # Send to multiple recipients
-ssmtp-mailer send --to user1@example.com,user2@example.com --subject "Group message" --body "Hello everyone"
+simple-smtp-mailer send --to user1@example.com,user2@example.com --subject "Group message" --body "Hello everyone"
 ```
 
 #### Queue Management
 ```bash
 # List queued emails
-ssmtp-mailer queue list
+simple-smtp-mailer queue list
 
 # Show failed emails
-ssmtp-mailer queue failed
+simple-smtp-mailer queue failed
 
 # Retry failed emails
-ssmtp-mailer queue retry
+simple-smtp-mailer queue retry
 
 # Clear queue
-ssmtp-mailer queue clear
+simple-smtp-mailer queue clear
 ```
 
 #### Configuration Management
 ```bash
 # Validate configuration
-ssmtp-mailer config validate
+simple-smtp-mailer config validate
 
 # Test SMTP connection
-ssmtp-mailer config test-connection
+simple-smtp-mailer config test-connection
 
 # Show current settings
-ssmtp-mailer config show
+simple-smtp-mailer config show
 ```
 
 ### Programmatic Usage
 
 #### C++ API
 ```cpp
-#include <ssmtp-mailer/email.hpp>
-#include <ssmtp-mailer/mailer.hpp>
+#include <simple-smtp-mailer/email.hpp>
+#include <simple-smtp-mailer/mailer.hpp>
 
 // Create email
     ssmtp_mailer::Email email;
 email.setFrom("sender@example.com");
 email.addTo("recipient@example.com");
 email.setSubject("Test Email");
-email.setBody("Hello from ssmtp-mailer!");
+email.setBody("Hello from simple-smtp-mailer!");
 
 // Send email
 ssmtp_mailer::Mailer mailer;
@@ -347,7 +347,7 @@ make docs
 
 ### Project Structure
 ```
-ssmtp-mailer/
+simple-smtp-mailer/
 ├── src/                    # Source code
 │   ├── core/              # Core functionality
 │   │   ├── auth/          # Authentication modules
@@ -447,17 +447,17 @@ This project is licensed under the **Apache License, Version 2.0** - see the [LI
 
 ### Getting Help
 - **Documentation**: Check the [docs/](docs/) directory
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/blburns/ssmtp-mailer/issues)
-- **Discussions**: Join conversations on [GitHub Discussions](https://github.com/blburns/ssmtp-mailer/discussions)
-- **Wiki**: Check the [GitHub Wiki](https://github.com/blburns/ssmtp-mailer/wiki)
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/blburns/simple-smtp-mailer/issues)
+- **Discussions**: Join conversations on [GitHub Discussions](https://github.com/blburns/simple-smtp-mailer/discussions)
+- **Wiki**: Check the [GitHub Wiki](https://github.com/blburns/simple-smtp-mailer/wiki)
 
 ### Community
-- **GitHub**: [https://github.com/blburns/ssmtp-mailer](https://github.com/blburns/ssmtp-mailer)
-- **Issues**: [https://github.com/blburns/ssmtp-mailer/issues](https://github.com/blburns/ssmtp-mailer/issues)
-- **Releases**: [https://github.com/blburns/ssmtp-mailer/releases](https://github.com/blburns/ssmtp-mailer/releases)
+- **GitHub**: [https://github.com/blburns/simple-smtp-mailer](https://github.com/blburns/simple-smtp-mailer)
+- **Issues**: [https://github.com/blburns/simple-smtp-mailer/issues](https://github.com/blburns/simple-smtp-mailer/issues)
+- **Releases**: [https://github.com/blburns/simple-smtp-mailer/releases](https://github.com/blburns/simple-smtp-mailer/releases)
 
 ---
 
-**Made with ❤️ by the ssmtp-mailer community**
+**Made with ❤️ by the simple-smtp-mailer community**
 
 *If you find this project useful, please consider giving it a ⭐ on GitHub!*

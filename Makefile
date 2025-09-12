@@ -1,8 +1,8 @@
-# Makefile for ssmtp-mailer
+# Makefile for simple-smtp-mailer
 # Simple SMTP Mailer - A smart host MTA for multiple domains
 
 # Variables
-PROJECT_NAME = ssmtp-mailer
+PROJECT_NAME = simple-smtp-mailer
 VERSION = 0.2.0
 BUILD_DIR = build
 DIST_DIR = dist
@@ -191,7 +191,7 @@ package-source-release:
 release-notes:
 	@echo "Creating release notes for v$(VERSION)..."
 	@mkdir -p $(DIST_DIR)/releases/v$(VERSION)
-	@echo "# ssmtp-mailer v$(VERSION) Release Notes" > $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
+	@echo "# simple-smtp-mailer v$(VERSION) Release Notes" > $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
 	@echo "" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
 	@echo "## Release Date" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
 	@echo "$(shell date '+%Y-%m-%d')" >> $(DIST_DIR)/releases/v$(VERSION)/RELEASE_NOTES.md
@@ -528,7 +528,7 @@ endif
 # Help
 help:
 	@echo "╔══════════════════════════════════════════════════════════════════════════════╗"
-	@echo "║                           ssmtp-mailer Makefile Help                         ║"
+	@echo "║                           simple-smtp-mailer Makefile Help                         ║"
 	@echo "╚══════════════════════════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "📋 BUILD TARGETS:"

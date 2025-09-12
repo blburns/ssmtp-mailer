@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ssmtp-mailer/cli_manager.hpp"
+#include "simple-smtp-mailer/cli_manager.hpp"
 
 namespace ssmtp_mailer {
 

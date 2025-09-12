@@ -1,5 +1,5 @@
 #include "core/smtp/smtp_client.hpp"
-#include "ssmtp-mailer/mailer.hpp"
+#include "simple-smtp-mailer/mailer.hpp"
 #include "core/logging/logger.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>

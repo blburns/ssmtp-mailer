@@ -1,13 +1,13 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "ssmtp-mailer/mailer.hpp"
-#include "ssmtp-mailer/unified_mailer.hpp"
-#include "ssmtp-mailer/cli_manager.hpp"
+#include "simple-smtp-mailer/mailer.hpp"
+#include "simple-smtp-mailer/unified_mailer.hpp"
+#include "simple-smtp-mailer/cli_manager.hpp"
 #include "core/logging/logger.hpp"
 
 void printUsage() {
-    std::cout << "\nUsage: ssmtp-mailer [OPTIONS] [COMMAND] [ARGS...]" << std::endl;
+    std::cout << "\nUsage: simple-smtp-mailer [OPTIONS] [COMMAND] [ARGS...]" << std::endl;
     std::cout << "\nOptions:" << std::endl;
     std::cout << "  --help, -h           Show this help message" << std::endl;
     std::cout << "  --version, -v        Show version information" << std::endl;
@@ -72,32 +72,32 @@ void printUsage() {
     
     std::cout << "\nExamples:" << std::endl;
     std::cout << "  # Basic email sending:" << std::endl;
-    std::cout << "  ssmtp-mailer send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
-    std::cout << "  ssmtp-mailer send-api --provider sendgrid --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
+    std::cout << "  simple-smtp-mailer send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
+    std::cout << "  simple-smtp-mailer send-api --provider sendgrid --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
     
     std::cout << "\n  # Queue management:" << std::endl;
-    std::cout << "  ssmtp-mailer queue add --from user@example.com --to recipient@domain.com --subject 'Queued' --body 'Hello'" << std::endl;
-    std::cout << "  ssmtp-mailer queue start" << std::endl;
-    std::cout << "  ssmtp-mailer queue status" << std::endl;
+    std::cout << "  simple-smtp-mailer queue add --from user@example.com --to recipient@domain.com --subject 'Queued' --body 'Hello'" << std::endl;
+    std::cout << "  simple-smtp-mailer queue start" << std::endl;
+    std::cout << "  simple-smtp-mailer queue status" << std::endl;
     
     std::cout << "\n  # Testing connections:" << std::endl;
-    std::cout << "  ssmtp-mailer test" << std::endl;
-    std::cout << "  ssmtp-mailer test-api --provider sendgrid" << std::endl;
+    std::cout << "  simple-smtp-mailer test" << std::endl;
+    std::cout << "  simple-smtp-mailer test-api --provider sendgrid" << std::endl;
     
     std::cout << "\n  # CLI configuration management:" << std::endl;
-    std::cout << "  ssmtp-mailer cli setup wizard" << std::endl;
-    std::cout << "  ssmtp-mailer cli config domain add example.com --smtp-server smtp.gmail.com --port 587" << std::endl;
-    std::cout << "  ssmtp-mailer cli config user add user@example.com --domain example.com" << std::endl;
-    std::cout << "  ssmtp-mailer cli auth oauth2 setup --provider google --domain example.com" << std::endl;
-    std::cout << "  ssmtp-mailer cli template create welcome --subject 'Welcome!' --body 'Welcome to our service!'" << std::endl;
-    std::cout << "  ssmtp-mailer cli validate config --verbose" << std::endl;
+    std::cout << "  simple-smtp-mailer cli setup wizard" << std::endl;
+    std::cout << "  simple-smtp-mailer cli config domain add example.com --smtp-server smtp.gmail.com --port 587" << std::endl;
+    std::cout << "  simple-smtp-mailer cli config user add user@example.com --domain example.com" << std::endl;
+    std::cout << "  simple-smtp-mailer cli auth oauth2 setup --provider google --domain example.com" << std::endl;
+    std::cout << "  simple-smtp-mailer cli template create welcome --subject 'Welcome!' --body 'Welcome to our service!'" << std::endl;
+    std::cout << "  simple-smtp-mailer cli validate config --verbose" << std::endl;
     
     std::cout << "\n  # Using custom config:" << std::endl;
-    std::cout << "  ssmtp-mailer --config /path/to/config.conf send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
+    std::cout << "  simple-smtp-mailer --config /path/to/config.conf send --from user@example.com --to recipient@domain.com --subject 'Test' --body 'Hello'" << std::endl;
 }
 
 void printVersion() {
-    std::cout << "ssmtp-mailer v0.2.0" << std::endl;
+    std::cout << "simple-smtp-mailer v0.2.0" << std::endl;
     std::cout << "Simple SMTP Mailer for Linux and macOS" << std::endl;
 }
 
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     }
     
     ssmtp_mailer::Logger& logger = ssmtp_mailer::Logger::getInstance();
-    logger.info("ssmtp-mailer v0.2.0 starting up");
+    logger.info("simple-smtp-mailer v0.2.0 starting up");
     
     // Check if we have a command
     if (args.empty() || args[0].substr(0, 2) == "--") {

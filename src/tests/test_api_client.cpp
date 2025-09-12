@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
-#include "ssmtp-mailer/api_client.hpp"
-#include "ssmtp-mailer/http_client.hpp"
+#include "simple-smtp-mailer/api_client.hpp"
+#include "simple-smtp-mailer/http_client.hpp"
 
 int main() {
     std::cout << "Testing API Client Functionality" << std::endl;

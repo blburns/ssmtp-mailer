@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
-#include "ssmtp-mailer/mailer.hpp"
+#include "simple-smtp-mailer/mailer.hpp"
 
 namespace ssmtp_mailer {
 

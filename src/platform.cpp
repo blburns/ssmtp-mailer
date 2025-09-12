@@ -1,4 +1,4 @@
-#include "ssmtp-mailer/platform.hpp"
+#include "simple-smtp-mailer/platform.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>

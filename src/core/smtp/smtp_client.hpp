@@ -6,7 +6,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "core/config/config_manager.hpp"
-#include "ssmtp-mailer/mailer.hpp"
+#include "simple-smtp-mailer/mailer.hpp"
 
 namespace ssmtp_mailer {
 

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "ssmtp-mailer/mailer.hpp"
+#include "simple-smtp-mailer/mailer.hpp"
 
 namespace ssmtp_mailer {
 
